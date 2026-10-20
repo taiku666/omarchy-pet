@@ -1,0 +1,8 @@
+# Project notes, kept local
+omarchy_pet_plugin.md
+
+# Editor and tool leftovers
+*.bak
+*.swp
+__pycache__/
+sprites.svg
