@@ -26,7 +26,7 @@ Item {
     text: bar.icon
     textFormat: Text.PlainText
     font.pixelSize: 13
-    font.family: "Noto Color Emoji"
+    font.family: Style.font.family
     SequentialAnimation on y {
       running: bar.low
       loops: Animation.Infinite
@@ -95,6 +95,6 @@ Item {
     color: bar.value >= 99.5 ? th.gold : th.dim
     font.pixelSize: 10
     font.bold: true
-    font.family: "monospace"
+    font.family: Style.font.family
   }
 }

@@ -56,12 +56,12 @@ and four growth stages (the adult form wears something extra).
 |---|---|
 | Click the pet on the bar | Open / close the care card |
 | Drag across the pet | Stroke it: hearts, affection, a pet-specific happy face |
-| Feed | Pick a food; favourites make it extra happy |
+| Feed | Pick a food from your pantry; favourites make it extra happy. Apples are free and never run out, everything else is used up |
 | Play | 15 second mini-games: catch the ball, pop bubbles, chase the laser dot |
 | Pet | Stroke mode: strokes count double |
 | Sleep / Wake | A nap restores energy; sleeping pets can't be fed or played with |
 | Clean | Wash the home, or click a single mess to remove it |
-| Shop | Spend coins on hats, food and toys |
+| Shop | Spend coins on hats and toys, and buy food by the portion |
 | ⚙ | Sound, volume, rename, goals, reset |
 
 While the card is open the pet stays inside it, in front of your desktop wallpaper.
@@ -81,9 +81,9 @@ a rescue.
 
 ### Progression
 
-- XP for every kind of care, levels, and four growth stages per pet
+- XP for feeding, playing and cleaning, levels, and four growth stages per pet
 - Coins from mini-games, a daily care streak and found coins
-- Hats, foods and toys to unlock, plus goals with coin rewards
+- Hats and toys to unlock, food to restock, plus goals with coin rewards
 - State is saved in `~/.local/share/omarchy-pet/state.json`
 
 ## Keybinding

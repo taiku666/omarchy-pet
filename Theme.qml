@@ -17,6 +17,9 @@ QtObject {
   // a whole so everything that reads it re-evaluates on a theme switch.
   property var hues: ({})
 
+  // The shell's own font, so the pet's text matches every other widget.
+  readonly property string font: Style.font.family
+
   readonly property color bg: OColor.popups.background
   readonly property color text: OColor.popups.text
   readonly property color border: OColor.popups.border

@@ -81,21 +81,22 @@ var PET_ORDER = ["cat", "dog", "bunny", "frog", "panda", "fox", "dragon", "pengu
 // hunger, happiness are the gains; `mood` is a flavour tag for the reaction.
 var FOODS = {
   apple:  { label: "Apple",  emoji: "🍎", hunger: 16, happiness: 3,  cost: 0 },
-  cookie: { label: "Cookie", emoji: "🍪", hunger: 10, happiness: 9,  cost: 0 },
-  cake:   { label: "Cake",   emoji: "🍰", hunger: 24, happiness: 14, cost: 40 },
-  fish:   { label: "Fish",   emoji: "🐟", hunger: 20, happiness: 4,  cost: 0, favoriteOf: "cat" },
-  bone:   { label: "Bone",   emoji: "🦴", hunger: 18, happiness: 4,  cost: 0, favoriteOf: "dog" },
-  carrot: { label: "Carrot", emoji: "🥕", hunger: 18, happiness: 4,  cost: 0, favoriteOf: "bunny" },
-  fly:    { label: "Fly",    emoji: "🪰", hunger: 14, happiness: 6,  cost: 0, favoriteOf: "frog" },
-  bamboo: { label: "Bamboo", emoji: "🎋", hunger: 22, happiness: 3,  cost: 0, favoriteOf: "panda" },
-  berry:  { label: "Berries", emoji: "🍓", hunger: 14, happiness: 7, cost: 0, favoriteOf: "fox" },
-  pepper: { label: "Pepper", emoji: "🌶️", hunger: 16, happiness: 6, cost: 0, favoriteOf: "dragon" },
-  shrimp: { label: "Shrimp", emoji: "🦐", hunger: 18, happiness: 5,  cost: 0, favoriteOf: "penguin" }
+  cookie: { label: "Cookie", emoji: "🍪", hunger: 10, happiness: 9,  cost: 3 },
+  cake:   { label: "Cake",   emoji: "🍰", hunger: 24, happiness: 14, cost: 12 },
+  fish:   { label: "Fish",   emoji: "🐟", hunger: 20, happiness: 4,  cost: 5, favoriteOf: "cat" },
+  bone:   { label: "Bone",   emoji: "🦴", hunger: 18, happiness: 4,  cost: 5, favoriteOf: "dog" },
+  carrot: { label: "Carrot", emoji: "🥕", hunger: 18, happiness: 4,  cost: 5, favoriteOf: "bunny" },
+  fly:    { label: "Fly",    emoji: "🪰", hunger: 14, happiness: 6,  cost: 5, favoriteOf: "frog" },
+  bamboo: { label: "Bamboo", emoji: "🎋", hunger: 22, happiness: 3,  cost: 5, favoriteOf: "panda" },
+  berry:  { label: "Berries", emoji: "🍓", hunger: 14, happiness: 7, cost: 5, favoriteOf: "fox" },
+  pepper: { label: "Pepper", emoji: "🌶️", hunger: 16, happiness: 6, cost: 5, favoriteOf: "dragon" },
+  shrimp: { label: "Shrimp", emoji: "🦐", hunger: 18, happiness: 5,  cost: 5, favoriteOf: "penguin" }
 }
 // Everything but the pet's own favourite can be bought for others too.
 var FOOD_ORDER = ["apple", "cookie", "cake", "fish", "bone", "carrot", "fly", "bamboo", "berry", "pepper", "shrimp"]
-var FOOD_PRICE = 20   // price of a non-favourite, non-starter food
-var STARTER_FOODS = ["apple", "cookie"]
+// Food is bought by the portion and used up when fed. A cost of 0 means the
+// food is unlimited, so a pet can never be left with nothing to eat.
+var STARTER_PORTIONS = 3
 
 var HATS = {
   none:     { label: "No hat",      cost: 0,   level: 1 },
@@ -177,7 +178,8 @@ function defaultState(now) {
     messes: 0,
     level: 1, xp: 0, coins: 20,
     counters: { feeds: 0, pets: 0, games: 0, cleans: 0, sleeps: 0 },
-    unlocked: { hats: ["none"], foods: STARTER_FOODS.slice(), toys: ["ball"] },
+    unlocked: { hats: ["none"], toys: ["ball"] },
+    pantry: {},                     // food id -> portions left
     equipped: { hat: "none" },
     milestones: {},
     streak: { day: "", days: 0 },
@@ -201,6 +203,10 @@ function mergeState(saved, now) {
     }
   }
   merge(base, saved)
+  // Older saves unlocked foods for good; they now start with a few portions each.
+  if (saved && typeof saved === "object" && !saved.pantry && saved.unlocked && Array.isArray(saved.unlocked.foods)) {
+    saved.unlocked.foods.forEach(function (id) { if (FOODS[id] && FOODS[id].cost > 0) base.pantry[id] = STARTER_PORTIONS })
+  }
   if (base.pet && !PETS[base.pet.type]) base.pet = null
   STAT_KEYS.forEach(function (k) { base.stats[k] = clamp(Number(base.stats[k]) || 0, 0, 100) })
   base.level = Math.max(1, Math.floor(Number(base.level) || 1))
@@ -291,14 +297,19 @@ function gain(state, key, amount) {
   state.stats[key] = clamp(state.stats[key] + amount, 0, 100)
 }
 
-function foodAvailable(state, id) {
-  return state.unlocked.foods.indexOf(id) !== -1
+function foodCount(state, id) {
+  var f = FOODS[id]
+  if (!f) return 0
+  return f.cost === 0 ? Infinity : (state.pantry[id] || 0)
 }
+function foodAvailable(state, id) { return foodCount(state, id) > 0 }
 
 function feed(state, foodId) {
   var food = FOODS[foodId]
   if (!food || !state.pet || state.sleeping) return null
+  if (!foodAvailable(state, foodId)) return { kind: "none" }
   if (state.stats.hunger >= 98) return { kind: "full" }
+  if (food.cost > 0) state.pantry[foodId] -= 1
   var fav = food.favoriteOf === state.pet.type
   gain(state, "hunger", food.hunger * (fav ? 1.25 : 1))
   gain(state, "happiness", food.happiness * (fav ? 2.5 : 1))
@@ -392,9 +403,7 @@ function toyAvailable(state, id) { return state.unlocked.toys.indexOf(id) !== -1
 
 function foodPrice(state, id) {
   var f = FOODS[id]
-  if (!f) return 0
-  if (f.cost > 0) return f.cost
-  return STARTER_FOODS.indexOf(id) !== -1 || f.favoriteOf === (state.pet && state.pet.type) ? 0 : FOOD_PRICE
+  return f ? f.cost : 0
 }
 
 // Returns "ok", "coins", "level", "owned" or "unknown".
@@ -402,21 +411,27 @@ function buy(state, kind, id) {
   var table = { hats: HATS, toys: TOYS }[kind]
   var item = kind === "foods" ? FOODS[id] : table && table[id]
   if (!item) return "unknown"
+  if (kind === "foods") {
+    if (item.cost === 0) return "owned"          // unlimited, nothing to buy
+    if (state.coins < item.cost) return "coins"
+    state.coins -= item.cost
+    state.pantry[id] = (state.pantry[id] || 0) + 1
+    return "ok"
+  }
   if (state.unlocked[kind].indexOf(id) !== -1) return "owned"
-  var cost = kind === "foods" ? foodPrice(state, id) : item.cost
-  if (kind !== "foods" && state.level < item.level) return "level"
-  if (state.coins < cost) return "coins"
-  state.coins -= cost
+  if (state.level < item.level) return "level"
+  if (state.coins < item.cost) return "coins"
+  state.coins -= item.cost
   state.unlocked[kind].push(id)
   return "ok"
 }
 
 // Starter favourite and free items become available the moment the pet exists.
-function unlockStarters(state) {
+// A new pet starts with a few portions of its favourite food.
+function giveStarters(state) {
   if (!state.pet) return
-  FOOD_ORDER.forEach(function (id) {
-    if (foodPrice(state, id) === 0 && state.unlocked.foods.indexOf(id) === -1) state.unlocked.foods.push(id)
-  })
+  var fav = PETS[state.pet.type].favorite
+  if (FOODS[fav].cost > 0 && !(state.pantry[fav] > 0)) state.pantry[fav] = STARTER_PORTIONS
 }
 
 // -------------------------------------------------------------- milestones

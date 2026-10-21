@@ -39,7 +39,7 @@ Rectangle {
       text: chip.emoji
       textFormat: Text.PlainText
       font.pixelSize: 32
-      font.family: "Noto Color Emoji"
+      font.family: Style.font.family
     }
   }
 
@@ -54,7 +54,7 @@ Rectangle {
     textFormat: Text.PlainText
     font.pixelSize: 11
     font.bold: true
-    color: th.text
+    color: chip.dim ? th.dim : th.text
   }
   Text { font.family: Style.font.family;
     anchors.bottom: parent.bottom
@@ -66,7 +66,7 @@ Rectangle {
     text: chip.subtitle
     textFormat: Text.PlainText
     font.pixelSize: 10
-    color: chip.dim ? th.dim : th.dim
+    color: chip.dim ? th.mix(th.dim, th.bg, 0.45) : th.dim
   }
 
   Rectangle {

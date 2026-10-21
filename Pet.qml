@@ -215,6 +215,7 @@ Item {
     var r = Logic.feed(ps, id)
     if (!r) { toast("Shh, " + ps.pet.name + " is sleeping"); return }
     closeSheet()
+    if (r.kind === "none") { toast("Out of " + Logic.FOODS[id].label.toLowerCase() + " - restock in the Shop"); return }
     if (r.kind === "full") { view.refuse(); return }
     view.eat(id, r.kind === "loved")
     afterCare(lv, st)
@@ -299,7 +300,7 @@ Item {
 
   function choosePet(type, name) {
     ps.pet = { type: type, name: Logic.cleanName(name), hatched: false }
-    Logic.unlockStarters(ps)
+    Logic.giveStarters(ps)
     ps.lastSeen = Date.now()
     sfx("click")
     touch()
@@ -337,8 +338,9 @@ Item {
     if (r === "ok") {
       sfx("coin")
       if (kind === "hats") ps.equipped.hat = id
-      toast("Unlocked " + ({ hats: Logic.HATS, foods: Logic.FOODS, toys: Logic.TOYS })[kind][id].label + "!")
-      view.celebrate()
+      var label = ({ hats: Logic.HATS, foods: Logic.FOODS, toys: Logic.TOYS })[kind][id].label
+      if (kind === "foods") toast("Bought " + label + " (" + ps.pantry[id] + " left)")
+      else { toast("Unlocked " + label + "!"); view.celebrate() }
       touch()
     } else {
       sfx("nope")
@@ -604,7 +606,7 @@ Item {
           x: Math.min(overlays.width - width - 4, view.headX + 14)
           y: Math.max(26, view.headY - 30)
           width: 34; height: 30; radius: 8; color: th.bg; border.color: th.border; border.width: 1
-          Text { anchors.centerIn: parent; text: view.thought; textFormat: Text.PlainText; font.pixelSize: 16; font.family: "Noto Color Emoji" }
+          Text { anchors.centerIn: parent; text: view.thought; textFormat: Text.PlainText; font.pixelSize: 16; font.family: Style.font.family }
         }
 
         Rectangle { // toast

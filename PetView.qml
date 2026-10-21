@@ -411,7 +411,8 @@ Item {
       var dx = dotX - wd.x, dy = (dotY + 6) - wd.y
       var dist = Math.sqrt(dx * dx + dy * dy)
       var spd = 170 * dt
-      if (dist > 6) { wd.x += dx / dist * Math.min(spd, dist); wd.y += dy / dist * Math.min(spd * 0.6, Math.abs(dy)) * (dy > 0 ? 1 : -1); wd.face = dx > 0 ? 1 : -1 }
+      if (dist > 6) { wd.x += dx / dist * Math.min(spd, dist); wd.y += dy / dist * Math.min(spd * 0.6, dist); wd.face = dx > 0 ? 1 : -1 }
+      wd.y = Math.max(floorY + 8, Math.min(height - 2, wd.y))
       var close = dist < 26
       pose = Anim.composePose(close ? "foxZoom" : "idle", close ? (ts * 3) % 1 : 0, ts, "playful")
       pose.dx = 0
@@ -537,10 +538,10 @@ Item {
         case "sparkle": Sprites.drawStar(ctx, p.x, p.y, p.size, String(ctl.th.gold)); break
         case "crumb": ctx.fillStyle = p.color; ctx.fillRect(Math.round(p.x), Math.round(p.y), 3, 3); break
         case "food":
-          ctx.globalAlpha = 1; ctx.font = "26px 'Noto Color Emoji'"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
+          ctx.globalAlpha = 1; ctx.font = "26px '" + ctl.th.font + "'"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
           ctx.fillText(p.emoji, p.px, p.py); break
         case "zzz":
-          ctx.fillStyle = String(ctl.th.text); ctx.font = "bold " + Math.round(12 + p.age * 5) + "px monospace"; ctx.textAlign = "center"
+          ctx.fillStyle = String(ctl.th.text); ctx.font = "bold " + Math.round(12 + p.age * 5) + "px '" + ctl.th.font + "'"; ctx.textAlign = "center"
           ctx.fillText("z", p.x, p.y); break
         case "bubble":
           ctx.strokeStyle = "rgba(255,255,255,0.95)"; ctx.fillStyle = "rgba(190,230,255,0.45)"; ctx.lineWidth = 1.5
@@ -548,7 +549,7 @@ Item {
         case "fire":
           ctx.fillStyle = p.color; ctx.fillRect(Math.round(p.x / 3) * 3, Math.round(p.y / 3) * 3, 6, 6); break
         case "note":
-          ctx.fillStyle = String(ctl.th.love); ctx.font = "bold 14px monospace"; ctx.fillText("♪", p.x, p.y); break
+          ctx.fillStyle = String(ctl.th.love); ctx.font = "bold 14px '" + ctl.th.font + "'"; ctx.fillText("♪", p.x, p.y); break
       }
       ctx.globalAlpha = 1
     }
@@ -558,7 +559,7 @@ Item {
       ctx.fillRect(0, 0, width, height)
     }
     if (strokeMode && hatched && !wd.game && !st.sleeping) {
-      ctx.font = "26px 'Noto Color Emoji'"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
+      ctx.font = "26px '" + ctl.th.font + "'"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
       ctx.globalAlpha = overPet ? 1 : 0.7
       ctx.fillText("🤚", wd.mouseX + 6, wd.mouseY + 8)
       ctx.globalAlpha = 1

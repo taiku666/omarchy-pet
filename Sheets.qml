@@ -59,13 +59,19 @@ Rectangle {
       id: foodFlow
       width: parent.width; spacing: 6
       Repeater {
-        model: sheets.kind === "food" ? Logic.FOOD_ORDER.filter(function (id) { return sheets.cur() && Logic.foodAvailable(sheets.cur(), id) }) : []
+        // Everything in stock, plus the staples and this pet's favourite even when out
+        // (greyed), but not other pets' favourites it has none of.
+        model: sheets.kind === "food" ? Logic.FOOD_ORDER.filter(function (id) {
+          var f = Logic.FOODS[id]
+          return sheets.cur() && (Logic.foodAvailable(sheets.cur(), id) || !f.favoriteOf || f.favoriteOf === sheets.petType)
+        }) : []
         delegate: ItemChip {
           th: sheets.th
           required property string modelData
           readonly property var food: Logic.FOODS[modelData]
           emoji: food.emoji
-          title: food.label
+          title: food.label + (food.cost === 0 ? "  ∞" : "  ×" + (sheets.cur().pantry[modelData] || 0))
+          dim: !Logic.foodAvailable(sheets.cur(), modelData)
           subtitle: "+" + food.hunger + " 🍽  +" + food.happiness + " ♥"
           badge: food.favoriteOf === sheets.petType ? "♥ fave" : ""
           onClicked: ctl.doFeed(modelData)
@@ -137,7 +143,7 @@ Rectangle {
       Repeater {
         model: {
           if (sheets.kind !== "shop") return []
-          return ({ hats: Logic.HAT_ORDER, foods: Logic.FOOD_ORDER, toys: Logic.TOY_ORDER })[sheets.tab]
+          return ({ hats: Logic.HAT_ORDER, foods: Logic.FOOD_ORDER.filter(function (id) { return Logic.FOODS[id].cost > 0 }), toys: Logic.TOY_ORDER })[sheets.tab]
         }
         delegate: ItemChip {
           th: sheets.th
@@ -145,7 +151,7 @@ Rectangle {
           required property string modelData
           readonly property string tabKind: sheets.tab
           readonly property var item: ({ hats: Logic.HATS, foods: Logic.FOODS, toys: Logic.TOYS })[tabKind][modelData]
-          readonly property bool owned: sheets.cur() && sheets.cur().unlocked[tabKind].indexOf(modelData) !== -1
+          readonly property bool owned: tabKind !== "foods" && sheets.cur() && sheets.cur().unlocked[tabKind].indexOf(modelData) !== -1
           readonly property bool equipped: sheets.cur() && (tabKind === "hats" && sheets.cur().equipped.hat === modelData)
           readonly property int price: tabKind === "foods" ? Logic.foodPrice(sheets.cur(), modelData) : item.cost
           readonly property bool levelLocked: tabKind !== "foods" && sheets.cur() && sheets.cur().level < item.level && !owned
@@ -153,7 +159,8 @@ Rectangle {
           title: item.label
           subtitle: equipped ? "In use" : owned ? (tabKind === "hats" ? "Tap to use" : "Owned")
                   : levelLocked ? "Level " + item.level : "🪙 " + price
-          badge: equipped ? "✓" : owned ? "" : levelLocked ? "🔒" : ""
+          badge: tabKind === "foods" ? (sheets.cur() && sheets.cur().pantry[modelData] > 0 ? "×" + sheets.cur().pantry[modelData] : "")
+               : equipped ? "✓" : owned ? "" : levelLocked ? "🔒" : ""
           highlighted: equipped
           dim: !owned && levelLocked
           preview: [
@@ -204,7 +211,7 @@ Rectangle {
           readonly property bool done: sheets.cur() && !!sheets.cur().milestones[modelData]
           width: goalCol.width; height: 38; radius: 12
           color: done ? th.mix(th.bg, th.good, 0.18) : th.surface; border.color: done ? th.good : th.line; border.width: 1
-          Text { x: 10; anchors.verticalCenter: parent.verticalCenter; text: parent.done ? "🏆" : "○"; textFormat: Text.PlainText; font.pixelSize: 16; font.family: "Noto Color Emoji" }
+          Text { x: 10; anchors.verticalCenter: parent.verticalCenter; text: parent.done ? "🏆" : "○"; textFormat: Text.PlainText; font.pixelSize: 16; font.family: Style.font.family }
           Column {
             x: 40; anchors.verticalCenter: parent.verticalCenter
             Text { font.family: Style.font.family; text: Logic.MILESTONES[modelData].label; textFormat: Text.PlainText; font.pixelSize: 12; font.bold: true; color: th.text }

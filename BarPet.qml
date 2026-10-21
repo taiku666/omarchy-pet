@@ -363,13 +363,13 @@ Item {
       var p = wd.particles[i]
       ctx.globalAlpha = Math.max(0, 1 - p.age / p.life)
       if (p.type === "heart") Sprites.drawHeart(ctx, p.x, p.y, 1, String(th.love))
-      else if (p.type === "zzz") { ctx.fillStyle = String(th.text); ctx.font = "bold " + Math.round(h * 0.34) + "px monospace"; ctx.textAlign = "center"; ctx.fillText("z", p.x, p.y) }
+      else if (p.type === "zzz") { ctx.fillStyle = String(th.text); ctx.font = "bold " + Math.round(h * 0.34) + "px '" + ctl.th.font + "'"; ctx.textAlign = "center"; ctx.fillText("z", p.x, p.y) }
       ctx.globalAlpha = 1
     }
 
     var tt = thought()
     if (tt !== "") {
-      ctx.font = Math.round(h * 0.42) + "px 'Noto Color Emoji'"
+      ctx.font = Math.round(h * 0.42) + "px '" + ctl.th.font + "'"
       ctx.textAlign = "center"; ctx.textBaseline = "middle"
       ctx.fillText(tt, wd.x + spriteW() * 0.55, h * 0.3 + Math.sin(t / 350) * 1.5)
     }

@@ -17,7 +17,7 @@ const NOW = Date.UTC(2026, 9, 20, 12, 0, 0);
 function fresh(type = "cat") {
   const s = L.defaultState(NOW);
   s.pet = { type, name: "Mochi", hatched: true };
-  L.unlockStarters(s);
+  L.giveStarters(s);
   return s;
 }
 
@@ -162,7 +162,7 @@ test("buying checks coins, level, ownership", () => {
   assert.equal(L.buy(s, "hats", "bow"), "owned");
   assert.equal(L.buy(s, "hats", "nope"), "unknown");
   assert.equal(L.buy(s, "foods", "cake"), "ok");
-  assert.equal(s.coins, 500 - 15 - 40);
+  assert.equal(s.coins, 500 - 15 - 12);
 });
 
 test("streak: consecutive days grow, gaps reset, same day is a no-op", () => {
@@ -192,4 +192,39 @@ test("mergeState keeps saves forward-compatible and sanitises", () => {
   assert.equal(s.stats.hunger, 100);
   assert.ok(s.unlocked.hats.includes("none"));
   assert.equal(L.cleanName("  \u0007Mochi the Magnificent!!  "), "Mochi the Magn");
+});
+
+test("food is used up, bought by the portion, and the apple never runs out", () => {
+  const s = fresh("cat");
+  s.stats.hunger = 20;
+  assert.equal(s.pantry.fish, 3);
+  assert.equal(L.feed(s, "fish").kind, "loved");
+  assert.equal(s.pantry.fish, 2);
+  assert.equal(L.feed(s, "cake").kind, "none");           // none bought yet
+  assert.equal(s.pantry.cake, undefined);
+  s.coins = 100;
+  assert.equal(L.buy(s, "foods", "cake"), "ok");
+  assert.equal(L.buy(s, "foods", "cake"), "ok");
+  assert.equal(s.pantry.cake, 2);
+  assert.equal(s.coins, 100 - 24);
+  s.coins = 0;
+  assert.equal(L.buy(s, "foods", "cake"), "coins");
+  assert.equal(L.buy(s, "foods", "apple"), "owned");      // unlimited, nothing to buy
+  for (let i = 0; i < 20; i++) { s.stats.hunger = 10; assert.equal(L.feed(s, "apple").kind, "ate"); }
+  assert.equal(L.foodAvailable(s, "apple"), true);
+});
+
+test("feeding a full pet does not use up food", () => {
+  const s = fresh("cat");
+  s.stats.hunger = 100;
+  assert.equal(L.feed(s, "fish").kind, "full");
+  assert.equal(s.pantry.fish, 3);
+});
+
+test("older saves with unlocked foods start with a few portions each", () => {
+  const saved = { pet: { type: "cat", name: "A", hatched: true }, unlocked: { hats: ["none"], foods: ["apple", "cookie", "cake"], toys: ["ball"] } };
+  const s = L.mergeState(saved, NOW);
+  assert.equal(s.pantry.cake, 3);
+  assert.equal(s.pantry.cookie, 3);
+  assert.equal(s.pantry.apple, undefined);
 });

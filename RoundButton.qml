@@ -37,7 +37,7 @@ Item {
         text: btn.icon
         textFormat: Text.PlainText
         font.pixelSize: 22
-        font.family: "Noto Color Emoji"
+        font.family: Style.font.family
       }
       Text { font.family: Style.font.family;
         anchors.horizontalCenter: parent.horizontalCenter
