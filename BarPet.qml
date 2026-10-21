@@ -113,6 +113,20 @@ Item {
     return best < 0 ? barLength / 2 : best
   }
 
+  // A random free spot in a gap other than the one x is in, so the pet crosses
+  // over widgets to somewhere new. -1 when there is no other gap.
+  function otherSpot(x) {
+    var half = spriteW() / 2 + 4, occ = occupied(), gaps = [], lo = 0
+    for (var i = 0; i <= occ.length; i++) {
+      var hi = i < occ.length ? occ[i].a : barLength
+      if (hi - lo >= half * 2 && !(x >= lo && x <= hi)) gaps.push([lo + half, hi - half])
+      if (i < occ.length) lo = occ[i].b
+    }
+    if (!gaps.length) return -1
+    var g = gaps[Math.floor(rnd() * gaps.length)]
+    return g[0] + (g[1] - g[0]) * rnd()
+  }
+
   function setBehavior(name) {
     var b = Anim.BEHAVIORS[name]
     var forced = !b.move && !isFree(wd.x)
@@ -125,9 +139,17 @@ Item {
       target = Math.max(margin, Math.min(barLength - margin, target))
       if (!forced && Math.abs(target - wd.x) < 24) target = Math.max(margin, Math.min(barLength - margin, wd.x + (wd.x > barLength / 2 ? -1 : 1) * reach * 0.5))
       target = restSpot(target)
+      // Often head for another gap altogether, walking right over the widgets.
+      if (!forced && b.move >= 1 && (Math.abs(target - wd.x) < 24 || rnd() < 0.4)) {
+        var far = otherSpot(wd.x)
+        if (far >= 0) target = far
+      }
       wd.face = target >= wd.x ? 1 : -1
     }
-    wd.beh = { name: name, start: now(), dur: Anim.durationOf(name, rnd), startX: wd.x, targetX: target }
+    var dur = Anim.durationOf(name, rnd)
+    // A long crossing takes longer, so it stays a walk and not a dash.
+    if (b.move) dur = Math.max(dur, Math.abs(target - wd.x) / 140 * 1000)
+    wd.beh = { name: name, start: now(), dur: dur, startX: wd.x, targetX: target }
   }
 
   function burstHeart(x, y) {
