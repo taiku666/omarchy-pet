@@ -1,7 +1,8 @@
 # Omarchy Pet
 
 A tiny pixel-art Tamagotchi that lives on your [Omarchy](https://omarchy.org/) bar.
-It wanders along the bar, naps, hops and looks around on its own. Click it to open
+It wanders along the bar, naps, hops and looks around on its own, and only comes
+to rest in the gaps between your bar widgets. Click it to open
 a care card: feed it, play, stroke it, put it to bed, clean up after it, and watch
 it grow. Everything is painted in your current Omarchy theme and repaints when you
 switch themes.
@@ -54,8 +55,12 @@ and four growth stages (the adult form wears something extra).
 | Shop | Spend coins on hats, rooms, food and toys |
 | ⚙ | Sound, volume, rename, goals, reset |
 
-While the card is open the pet stays inside it, in its room. Close the card and it
-walks back onto the bar.
+While the card is open the pet stays inside it, in front of your desktop wallpaper.
+Close the card and it walks back onto the bar.
+
+On the bar the pet may walk over other widgets, but it only stops, naps or hops
+where there is free space. If the bar has no gap wide enough, it settles in the
+middle.
 
 ### Needs
 
@@ -88,6 +93,10 @@ from the bar until you `show` it again).
 
 - Works with a horizontal bar (top or bottom). With a vertical bar the pet is not
   drawn on it.
+- The card's backdrop is your current wallpaper (`~/.local/state/omarchy/current/background`).
+  With a video wallpaper, or none, it falls back to the painted room you equipped.
+- The pet finds free spots by polling the shell's bar geometry
+  (`omarchy-shell shell debugBarGeometry`) every 1.5 seconds while it is on the bar.
 - Colours come from the active theme's `colors.toml` and the shell's popup colours,
   so there is nothing to configure.
 
@@ -100,7 +109,7 @@ node tools/preview.mjs out.svg    # contact sheet of the sprites
 ```
 
 `Logic.js` holds the rules and is pure, `Sprites.js` the pixel art, `Anim.js` the
-behaviours, `Scenes.js` the rooms, `Theme.qml` the colours.
+behaviours, `Scenes.js` the fallback backdrops, `Theme.qml` the colours.
 
 ## License
 
