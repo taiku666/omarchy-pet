@@ -78,6 +78,22 @@ Item {
     wd.occ = merged
   }
 
+  // The screensaver is a fullscreen terminal, and this overlay would sit on top of
+  // it. Same check Omarchy's own launcher uses to see whether it is running.
+  property bool screensaver: false
+  Process {
+    id: saverCheck
+    command: ["pgrep", "-f", "[o]rg.omarchy.screensaver"]
+    onExited: function (code) { bp.screensaver = code === 0 }
+  }
+  Timer {
+    interval: 2000
+    repeat: true
+    running: bp.hatched || (ctl && ctl.loaded)
+    triggeredOnStart: true
+    onTriggered: if (!saverCheck.running) saverCheck.running = true
+  }
+
   Process {
     id: geom
     command: ["omarchy-shell", "shell", "debugBarGeometry"]
@@ -263,7 +279,7 @@ Item {
     id: win
 
     screen: bp.petScreen
-    visible: !bp.vertical && bp.petScreen !== null && !bp.barHidden && ctl && ctl.loaded && !ctl.hidden && !ctl.popupOpen
+    visible: !bp.vertical && bp.petScreen !== null && !bp.barHidden && !bp.screensaver && ctl && ctl.loaded && !ctl.hidden && !ctl.popupOpen
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "omarchy-pet-bar"
