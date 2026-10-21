@@ -116,7 +116,7 @@ Rectangle {
     visible: sheets.kind === "shop"
     x: 12; y: 42; spacing: 6
     Repeater {
-      model: [["hats", "🎩 Hats"], ["rooms", "🏞️ Rooms"], ["foods", "🍰 Food"], ["toys", "🎾 Toys"]]
+      model: [["hats", "🎩 Hats"], ["foods", "🍰 Food"], ["toys", "🎾 Toys"]]
       delegate: Rectangle {
         required property var modelData
         width: 72; height: 26; radius: 13
@@ -137,21 +137,21 @@ Rectangle {
       Repeater {
         model: {
           if (sheets.kind !== "shop") return []
-          return ({ hats: Logic.HAT_ORDER, rooms: Logic.ROOM_ORDER, foods: Logic.FOOD_ORDER, toys: Logic.TOY_ORDER })[sheets.tab]
+          return ({ hats: Logic.HAT_ORDER, foods: Logic.FOOD_ORDER, toys: Logic.TOY_ORDER })[sheets.tab]
         }
         delegate: ItemChip {
           th: sheets.th
           id: shopChip
           required property string modelData
           readonly property string tabKind: sheets.tab
-          readonly property var item: ({ hats: Logic.HATS, rooms: Logic.ROOMS, foods: Logic.FOODS, toys: Logic.TOYS })[tabKind][modelData]
+          readonly property var item: ({ hats: Logic.HATS, foods: Logic.FOODS, toys: Logic.TOYS })[tabKind][modelData]
           readonly property bool owned: sheets.cur() && sheets.cur().unlocked[tabKind].indexOf(modelData) !== -1
-          readonly property bool equipped: sheets.cur() && ((tabKind === "hats" && sheets.cur().equipped.hat === modelData) || (tabKind === "rooms" && sheets.cur().equipped.room === modelData))
+          readonly property bool equipped: sheets.cur() && (tabKind === "hats" && sheets.cur().equipped.hat === modelData)
           readonly property int price: tabKind === "foods" ? Logic.foodPrice(sheets.cur(), modelData) : item.cost
           readonly property bool levelLocked: tabKind !== "foods" && sheets.cur() && sheets.cur().level < item.level && !owned
           emoji: tabKind === "foods" || tabKind === "toys" ? item.emoji : ""
           title: item.label
-          subtitle: equipped ? "In use" : owned ? (tabKind === "hats" || tabKind === "rooms" ? "Tap to use" : "Owned")
+          subtitle: equipped ? "In use" : owned ? (tabKind === "hats" ? "Tap to use" : "Owned")
                   : levelLocked ? "Level " + item.level : "🪙 " + price
           badge: equipped ? "✓" : owned ? "" : levelLocked ? "🔒" : ""
           highlighted: equipped
@@ -159,13 +159,12 @@ Rectangle {
           preview: [
             Loader {
               anchors.centerIn: parent
-              active: shopChip.tabKind === "hats" || shopChip.tabKind === "rooms"
+              active: shopChip.tabKind === "hats"
               sourceComponent: Preview {
                 th: sheets.th
-                kind: shopChip.tabKind === "hats" ? "hat" : "room"
+                kind: "hat"
                 petType: sheets.petType
                 hat: shopChip.modelData
-                room: shopChip.modelData
                 zoom: 2.0
                 width: 56; height: 50
               }
@@ -174,7 +173,6 @@ Rectangle {
           onClicked: {
             if (owned) {
               if (tabKind === "hats") ctl.equip("hat", modelData)
-              else if (tabKind === "rooms") ctl.equip("room", modelData)
             } else ctl.buyItem(tabKind, modelData)
           }
         }

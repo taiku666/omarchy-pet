@@ -337,8 +337,7 @@ Item {
     if (r === "ok") {
       sfx("coin")
       if (kind === "hats") ps.equipped.hat = id
-      if (kind === "rooms") ps.equipped.room = id
-      toast("Unlocked " + ({ hats: Logic.HATS, rooms: Logic.ROOMS, foods: Logic.FOODS, toys: Logic.TOYS })[kind][id].label + "!")
+      toast("Unlocked " + ({ hats: Logic.HATS, foods: Logic.FOODS, toys: Logic.TOYS })[kind][id].label + "!")
       view.celebrate()
       touch()
     } else {
@@ -349,7 +348,6 @@ Item {
 
   function equip(slot, id) {
     if (slot === "hat") ps.equipped.hat = id
-    else ps.equipped.room = id
     sfx("click")
     touch()
   }
@@ -551,7 +549,7 @@ Item {
         }
       }
 
-      // ---- the room the pet is in while the popup is open
+      // ---- the scene the pet is in while the popup is open
       PetView {
         id: view
         ctl: root

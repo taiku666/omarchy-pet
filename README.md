@@ -61,7 +61,7 @@ and four growth stages (the adult form wears something extra).
 | Pet | Stroke mode: strokes count double |
 | Sleep / Wake | A nap restores energy; sleeping pets can't be fed or played with |
 | Clean | Wash the home, or click a single mess to remove it |
-| Shop | Spend coins on hats, rooms, food and toys |
+| Shop | Spend coins on hats, food and toys |
 | ⚙ | Sound, volume, rename, goals, reset |
 
 While the card is open the pet stays inside it, in front of your desktop wallpaper.
@@ -83,7 +83,7 @@ a rescue.
 
 - XP for every kind of care, levels, and four growth stages per pet
 - Coins from mini-games, a daily care streak and found coins
-- Hats, rooms, foods and toys to unlock, plus goals with coin rewards
+- Hats, foods and toys to unlock, plus goals with coin rewards
 - State is saved in `~/.local/share/omarchy-pet/state.json`
 
 ## Keybinding
@@ -103,7 +103,7 @@ from the bar until you `show` it again).
 - Works with a horizontal bar (top or bottom). With a vertical bar the pet is not
   drawn on it.
 - The card's backdrop is your current wallpaper (`~/.local/state/omarchy/current/background`).
-  With a video wallpaper, or none, it falls back to the painted room you equipped.
+  With a video wallpaper, or none, it falls back to a plain surface.
 - The pet finds free spots by polling the shell's bar geometry
   (`omarchy-shell shell debugBarGeometry`) every 1.5 seconds while it is on the bar.
 - Colours come from the active theme's `colors.toml` and the shell's popup colours,
@@ -119,7 +119,7 @@ node tools/gallery.mjs g.svg      # every pet in a few themes (README gallery)
 ```
 
 `Logic.js` holds the rules and is pure, `Sprites.js` the pixel art, `Anim.js` the
-behaviours, `Scenes.js` the fallback backdrops, `Palette.js` turns a theme into pet colours, `Theme.qml` the rest of the colours.
+behaviours, `Palette.js` turns a theme into pet colours, `Theme.qml` the rest of the colours.
 
 ## License
 

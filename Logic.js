@@ -111,16 +111,6 @@ var HATS = {
 }
 var HAT_ORDER = ["none", "bow", "party", "flower", "glasses", "phones", "tophat", "wizard", "halo", "crown"]
 
-var ROOMS = {
-  meadow: { label: "Meadow",     cost: 0,   level: 1 },
-  night:  { label: "Starry Night", cost: 35, level: 2 },
-  beach:  { label: "Beach",      cost: 50,  level: 3 },
-  snow:   { label: "Snowfield",  cost: 70,  level: 4 },
-  sakura: { label: "Sakura",     cost: 90,  level: 5 },
-  space:  { label: "Space",      cost: 140, level: 7 }
-}
-var ROOM_ORDER = ["meadow", "night", "beach", "snow", "sakura", "space"]
-
 var TOYS = {
   ball:    { label: "Catch the Ball", emoji: "🎾", cost: 0,  level: 1, game: "ball" },
   bubbles: { label: "Pop Bubbles",    emoji: "🫧", cost: 30, level: 2, game: "bubbles" },
@@ -187,8 +177,8 @@ function defaultState(now) {
     messes: 0,
     level: 1, xp: 0, coins: 20,
     counters: { feeds: 0, pets: 0, games: 0, cleans: 0, sleeps: 0 },
-    unlocked: { hats: ["none"], rooms: ["meadow"], foods: STARTER_FOODS.slice(), toys: ["ball"] },
-    equipped: { hat: "none", room: "meadow" },
+    unlocked: { hats: ["none"], foods: STARTER_FOODS.slice(), toys: ["ball"] },
+    equipped: { hat: "none" },
     milestones: {},
     streak: { day: "", days: 0 },
     settings: { sound: true, volume: 60 },
@@ -398,7 +388,6 @@ function mood(state) {
 // ------------------------------------------------------------------- shop
 
 function hatAvailable(state, id) { return state.unlocked.hats.indexOf(id) !== -1 }
-function roomAvailable(state, id) { return state.unlocked.rooms.indexOf(id) !== -1 }
 function toyAvailable(state, id) { return state.unlocked.toys.indexOf(id) !== -1 }
 
 function foodPrice(state, id) {
@@ -410,7 +399,7 @@ function foodPrice(state, id) {
 
 // Returns "ok", "coins", "level", "owned" or "unknown".
 function buy(state, kind, id) {
-  var table = { hats: HATS, rooms: ROOMS, toys: TOYS }[kind]
+  var table = { hats: HATS, toys: TOYS }[kind]
   var item = kind === "foods" ? FOODS[id] : table && table[id]
   if (!item) return "unknown"
   if (state.unlocked[kind].indexOf(id) !== -1) return "owned"

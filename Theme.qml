@@ -67,15 +67,4 @@ QtObject {
       bg: solid(bg), text: solid(text), accent: solid(accent), urgent: solid(urgent), hues: hues
     })
   }
-
-  // Colours the room backgrounds draw with.
-  function roomPalette() {
-    var fgc = hue("bright_foreground", text)
-    return {
-      bg: css(bg), fg: css(fgc), accent: css(accent), dim: css(dim),
-      green: css(hue("green", accent)), yellow: css(hue("yellow", accent)), cyan: css(hue("cyan", accent)),
-      blue: css(hue("blue", accent)), magenta: css(hue("magenta", accent)), red: css(hue("red", urgent)),
-      orange: css(hue("orange", accent)), surface: css(surface), line: css(line)
-    }
-  }
 }

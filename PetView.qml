@@ -7,7 +7,6 @@ import Quickshell
 import Quickshell.Io
 import "Sprites.js" as Sprites
 import "Anim.js" as Anim
-import "Scenes.js" as Scenes
 import "Logic.js" as Logic
 
 Item {
@@ -429,8 +428,8 @@ Item {
 
   // ------------------------------------------------------------- painting
 
-  // The desktop wallpaper is the backdrop. The painted room only shows when
-  // there is no still image to use (a video wallpaper, or none set).
+  // The desktop wallpaper is the backdrop. Without a still image to use (a video
+  // wallpaper, or none set) it is a plain surface.
   property string wallpaper: ""
   Process {
     id: wallpaperPath
@@ -451,19 +450,10 @@ Item {
     sourceSize.width: 1280
   }
 
-  Canvas {
-    id: bg
+  Rectangle {
     anchors.fill: parent
     visible: view.active && wallpaperImage.status !== Image.Ready
-    onPaint: {
-      var ctx = getContext("2d")
-      ctx.reset()
-      var room = view.st ? view.st.equipped.room : "meadow"
-      Scenes.drawRoom(ctx, width, height, room, (Date.now() - view.wd.t0) / 1000, view.floorY, view.ctl.th.roomPalette())
-    }
-    Timer { interval: 180; repeat: true; running: view.active; onTriggered: bg.requestPaint() }
-    onWidthChanged: requestPaint()
-    onHeightChanged: requestPaint()
+    color: view.ctl.th.surface
   }
 
   Canvas {
@@ -648,7 +638,7 @@ Item {
       }
     } else {
       var pulse = g.pinned ? 7 : 5 + Math.sin(t / 80) * 1.5
-      ctx.fillStyle = Scenes.rgba(String(ctl.th.bad), 0.3); ctx.beginPath(); ctx.arc(g.dx, g.dy, pulse * 2.4, 0, Math.PI * 2); ctx.fill()
+      ctx.fillStyle = Qt.rgba(ctl.th.bad.r, ctl.th.bad.g, ctl.th.bad.b, 0.3); ctx.beginPath(); ctx.arc(g.dx, g.dy, pulse * 2.4, 0, Math.PI * 2); ctx.fill()
       ctx.fillStyle = String(ctl.th.bad); ctx.beginPath(); ctx.arc(g.dx, g.dy, pulse, 0, Math.PI * 2); ctx.fill()
       ctx.fillStyle = "#ffffff"; ctx.fillRect(g.dx - 1, g.dy - 1, 2, 2)
     }
