@@ -57,7 +57,7 @@ and four growth stages (the adult form wears something extra).
 | Click the pet on the bar | Open / close the care card |
 | Drag across the pet | Stroke it: hearts, affection, a pet-specific happy face |
 | Feed | Pick a food from your pantry; favourites make it extra happy. Apples are free and never run out, everything else is used up |
-| Play | 15 second mini-games: catch the ball, pop bubbles, chase the laser dot |
+| Play | 15 second mini-games: catch the ball, pop bubbles, chase the laser dot, jump rope, tug the yarn, peekaboo |
 | Pet | Stroke mode: strokes count double |
 | Sleep / Wake | A nap restores energy; sleeping pets can't be fed or played with |
 | Clean | Wash the home, or click a single mess to remove it |

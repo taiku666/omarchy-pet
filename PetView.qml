@@ -158,7 +158,7 @@ Item {
     view.gameScore = 0
     view.gameProgress = 0
     view.gameActive = true
-    say(id === "ball" ? "Catch the balls!" : id === "bubbles" ? "Pop the bubbles!" : "Chase the dot!", 1800)
+    say(({ ball: "Catch the balls!", bubbles: "Pop the bubbles!", laser: "Chase the dot!", rope: "Jump when it swings!", yarn: "Tug, tug, tug!", peek: "Boop the critters!" })[id] || "", 1800)
   }
   function endGame(early) {
     if (!wd.game) return
@@ -404,6 +404,48 @@ Item {
       }
       if (near) { pose.lookX = near.x > wd.x ? 1 : -1; pose.lookY = near.y < wd.y - 60 ? -1 : 0 }
       if (g.hopUntil && t < g.hopUntil) { var hp = 1 - (g.hopUntil - t) / 380; pose.dy = -Math.sin(Math.PI * hp) * 12; pose.mouth = "open" }
+    } else if (g.id === "rope") {
+      wd.x += (width / 2 - wd.x) * Math.min(1, dt * 6); wd.face = 1
+      var period = 1.3 - 0.25 * view.gameProgress
+      var prevPh = g.ph || 0
+      g.ph = prevPh + dt / period
+      var hopT = g.hopStart ? (t - g.hopStart) / 450 : 2
+      // The rope sweeps under the feet at the half turn; a hop in the air then scores.
+      if (Math.floor(g.ph - 0.5) > Math.floor(prevPh - 0.5)) {
+        if (hopT >= 0.12 && hopT <= 0.88) {
+          g.score += 1; g.streak = (g.streak || 0) + 1
+          burst("star", wd.x, footY - 4, 4, 50)
+          ctl.sfx("bounce")
+          if (g.streak % 5 === 0) { g.score += 1; say("Nice! x" + g.streak, 800) }
+        } else { g.streak = 0; g.trip = t; ctl.sfx("nope") }
+      }
+      pose = Anim.composePose("idle", 0, ts, "playful")
+      pose.dy = hopT < 1 ? -Math.sin(Math.PI * hopT) * 26 : 0
+      pose.eyes = "open"; pose.mouth = hopT < 1 ? "open" : "smile"; pose.tailAmp = 2.5
+      if (g.trip && t - g.trip < 400) { pose.rot = Math.sin((t - g.trip) / 40) * 0.08; pose.eyes = "closed" }
+    } else if (g.id === "yarn") {
+      wd.x += (width * 0.3 - wd.x) * Math.min(1, dt * 6); wd.face = 1
+      var pullT = g.pull ? (t - g.pull) / 260 : 1
+      pose = Anim.composePose("idle", 0, ts, "playful")
+      pose.rot = pullT < 1 ? -0.12 * (1 - pullT) : 0
+      pose.dy = pullT < 1 ? -Math.sin(Math.PI * pullT) * 3 : 0
+      pose.eyes = "open"; pose.mouth = pullT < 1 ? "open" : "smile"; pose.tailAmp = 3
+    } else if (g.id === "peek") {
+      pose = Anim.composePose("idle", 0, ts, "playful")
+      pose.eyes = "open"; pose.mouth = "smile"; pose.tailAmp = 2.5
+      if (!g.holes) { g.holes = []; for (i = 0; i < 5; i++) g.holes.push({ x: width * (0.12 + 0.19 * i), t0: 0, dur: 0, gold: false, col: 0 }) }
+      if (t > g.nextSpawn) {
+        var open = g.holes.filter(function (hl) { return t > hl.t0 + hl.dur })
+        if (open.length) {
+          var pick = open[Math.floor(rnd() * open.length)]
+          pick.t0 = t; pick.dur = 1100 + rnd() * 500; pick.gold = rnd() < 0.1; pick.col = Math.floor(rnd() * 3)
+        }
+        g.nextSpawn = t + 520 + rnd() * 400
+      }
+      var seen = null
+      for (i = 0; i < g.holes.length; i++) if (t < g.holes[i].t0 + g.holes[i].dur && (!seen || g.holes[i].t0 > seen.t0)) seen = g.holes[i]
+      if (seen) { pose.lookX = seen.x > wd.x ? 1 : -1; pose.lookY = -1 }
+      if (g.hopUntil && t < g.hopUntil) { var hq = 1 - (g.hopUntil - t) / 380; pose.dy = -Math.sin(Math.PI * hq) * 12; pose.mouth = "open" }
     } else { // laser
       var dotX = Math.max(10, Math.min(width - 10, wd.mouseX))
       var dotY = Math.max(floorY + 8, Math.min(height - 8, wd.mouseY))
@@ -637,6 +679,42 @@ Item {
         ctx.beginPath(); ctx.arc(it.x + wob, it.y, it.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke()
         ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.fillRect(it.x + wob - it.r * 0.5, it.y - it.r * 0.5, 4, 4)
       }
+    } else if (g.id === "rope") {
+      var sc = bodyScale() * art, half = 20 * sc, hy = footY - 6
+      var mid = footY - 18 * sc * 1.05 * (0.5 + 0.5 * Math.cos(2 * Math.PI * (g.ph || 0)))
+      ctx.strokeStyle = String(ctl.th.text); ctx.lineWidth = 3
+      ctx.beginPath(); ctx.moveTo(wd.x - half, hy); ctx.quadraticCurveTo(wd.x, 2 * mid - hy, wd.x + half, hy); ctx.stroke()
+      ctx.fillStyle = String(ctl.th.accent)
+      ctx.beginPath(); ctx.arc(wd.x - half, hy, 6, 0, Math.PI * 2); ctx.fill()
+      ctx.beginPath(); ctx.arc(wd.x + half, hy, 6, 0, Math.PI * 2); ctx.fill()
+    } else if (g.id === "yarn") {
+      var pt = g.pull ? (t - g.pull) / 260 : 1
+      var bx0 = width * 0.78 - (pt < 1 ? 14 * (1 - pt) : 0), by0 = footY - 16
+      var mx0 = wd.x + 12 * bodyScale() * art, my0 = footY - 6 * bodyScale() * art
+      ctx.strokeStyle = String(ctl.th.love); ctx.lineWidth = 3
+      ctx.beginPath(); ctx.moveTo(mx0, my0)
+      for (i = 1; i <= 12; i++) { var u = i / 12; ctx.lineTo(mx0 + (bx0 - mx0) * u, my0 + (by0 - my0) * u + Math.sin(u * 9 + t / 120) * (pt < 1 ? 4 : 1.5) * Math.sin(u * Math.PI)) }
+      ctx.stroke()
+      ctx.fillStyle = String(ctl.th.love); ctx.beginPath(); ctx.arc(bx0, by0, 17, 0, Math.PI * 2); ctx.fill()
+      ctx.strokeStyle = String(ctl.th.mix(ctl.th.love, "#ffffff", 0.45)); ctx.lineWidth = 2
+      var spin = g.score * 1.2
+      for (i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(bx0, by0, 6 + i * 4, spin + i, spin + i + 2.2); ctx.stroke() }
+    } else if (g.id === "peek") {
+      var cols = [ctl.th.hue("magenta"), ctl.th.hue("cyan"), ctl.th.hue("orange")]
+      for (i = 0; i < (g.holes || []).length; i++) {
+        var hh = g.holes[i], hv = peekVis(hh, t), hcy = floorY + 4 + 20 - hv * 42
+        ctx.fillStyle = "rgba(0,0,0,0.45)"; ctx.beginPath(); ctx.ellipse(hh.x - 26, floorY + 4 - 8, 52, 16); ctx.fill()
+        if (hv <= 0) continue
+        ctx.save(); ctx.beginPath(); ctx.rect(hh.x - 32, floorY - 90, 64, 90 + 4); ctx.clip()
+        ctx.fillStyle = String(hh.gold ? ctl.th.gold : ctl.th.mix(cols[hh.col], ctl.th.text, 0.12))
+        ctx.beginPath(); ctx.arc(hh.x, hcy, 17, 0, Math.PI * 2); ctx.fill()
+        ctx.beginPath(); ctx.arc(hh.x - 11, hcy - 14, 6, 0, Math.PI * 2); ctx.fill()
+        ctx.beginPath(); ctx.arc(hh.x + 11, hcy - 14, 6, 0, Math.PI * 2); ctx.fill()
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(hh.x - 8, hcy - 5, 5, 5); ctx.fillRect(hh.x + 3, hcy - 5, 5, 5)
+        ctx.fillStyle = "#2b2433"; ctx.fillRect(hh.x - 6, hcy - 4, 3, 3); ctx.fillRect(hh.x + 5, hcy - 4, 3, 3)
+        ctx.fillRect(hh.x - 3, hcy + 4, 6, 3)
+        ctx.restore()
+      }
     } else {
       var pulse = g.pinned ? 7 : 5 + Math.sin(t / 80) * 1.5
       ctx.fillStyle = Qt.rgba(ctl.th.bad.r, ctl.th.bad.g, ctl.th.bad.b, 0.3); ctx.beginPath(); ctx.arc(g.dx, g.dy, pulse * 2.4, 0, Math.PI * 2); ctx.fill()
@@ -712,9 +790,37 @@ Item {
     if (st.counters.pets % 8 === 0) { playReact("love"); ctl.voice("happy") }
   }
 
+  // How far a critter has risen from its hole: 0 hidden, 1 fully up.
+  function peekVis(h, t) {
+    if (!h.dur || t > h.t0 + h.dur) return 0
+    var p = (t - h.t0) / h.dur
+    return Math.max(0, Math.min(1, p / 0.18, (1 - p) / 0.18))
+  }
+
   function onPress(x, y) {
     if (!hatched) return
     var g = wd.game
+    if (g && g.id === "rope" && (!g.hopStart || now() - g.hopStart > 480)) { g.hopStart = now(); ctl.sfx("click") }
+    if (g && g.id === "yarn") {
+      g.pull = now(); g.score += 0.25
+      ctl.sfx("click")
+      burst("crumb", width * 0.78, footY - 16, 2, 30)
+    }
+    if (g && g.id === "peek" && g.holes) {
+      var tn = now()
+      for (var j = 0; j < g.holes.length; j++) {
+        var hl = g.holes[j], hv = peekVis(hl, tn)
+        var cy = floorY + 4 + 20 - hv * 42
+        if (hv > 0.35 && (x - hl.x) * (x - hl.x) + (y - cy) * (y - cy) <= 26 * 26) {
+          g.score += hl.gold ? 3 : 1
+          hl.dur = 0
+          burst("star", hl.x, cy, 7, 70)
+          ctl.sfx("pop")
+          g.hopUntil = tn + 380
+          break
+        }
+      }
+    }
     if (g && g.id === "bubbles") {
       for (var i = g.items.length - 1; i >= 0; i--) {
         var it = g.items[i]

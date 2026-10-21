@@ -115,9 +115,12 @@ var HAT_ORDER = ["none", "bow", "party", "flower", "glasses", "phones", "tophat"
 var TOYS = {
   ball:    { label: "Catch the Ball", emoji: "🎾", cost: 0,  level: 1, game: "ball" },
   bubbles: { label: "Pop Bubbles",    emoji: "🫧", cost: 30, level: 2, game: "bubbles" },
-  laser:   { label: "Laser Chase",    emoji: "🔴", cost: 60, level: 3, game: "laser" }
+  laser:   { label: "Laser Chase",    emoji: "🔴", cost: 60, level: 3, game: "laser" },
+  rope:    { label: "Jump Rope",      emoji: "🪢", cost: 40, level: 2, game: "rope" },
+  yarn:    { label: "Yarn Tug",       emoji: "🧶", cost: 50, level: 3, game: "yarn" },
+  peek:    { label: "Peekaboo",       emoji: "🙈", cost: 70, level: 4, game: "peek" }
 }
-var TOY_ORDER = ["ball", "bubbles", "laser"]
+var TOY_ORDER = ["ball", "bubbles", "laser", "rope", "yarn", "peek"]
 
 var MILESTONES = {
   firstMeal:  { label: "First meal",          reward: 5,  desc: "Feed your pet once" },

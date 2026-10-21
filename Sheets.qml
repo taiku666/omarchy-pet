@@ -100,7 +100,7 @@ Rectangle {
           readonly property bool owned: sheets.cur() && Logic.toyAvailable(sheets.cur(), modelData)
           emoji: toy.emoji
           title: toy.label
-          subtitle: owned ? ({ ball: "Move the mouse", bubbles: "Click bubbles", laser: "Move the dot" })[toy.game]
+          subtitle: owned ? ({ ball: "Move the mouse", bubbles: "Click bubbles", laser: "Move the dot", rope: "Click to jump", yarn: "Click fast", peek: "Click the critters" })[toy.game]
                           : (sheets.cur() && sheets.cur().level < toy.level ? "Level " + toy.level : "🪙 " + toy.cost)
           badge: owned ? "" : "🔒"
           dim: !owned
