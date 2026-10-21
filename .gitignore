@@ -6,3 +6,4 @@ omarchy_pet_plugin.md
 *.swp
 __pycache__/
 sprites.svg
+release.sh

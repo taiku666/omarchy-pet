@@ -8,6 +8,7 @@
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import "Sprites.js" as Sprites
@@ -54,22 +55,76 @@ Item {
   function stageScale() { return 0.82 + 0.06 * (st ? Logic.stageForLevel(st.level) : 0) }
   function spriteW() { return 20 * art * stageScale() }
 
-  // Keep the middle of the bar (the clock) clear when choosing where to stop.
-  function avoidCentre(x) {
-    var half = barLength * 0.09, mid = barLength / 2
-    if (Math.abs(x - mid) < half) return x < mid ? mid - half : mid + half
-    return x
+  // The stretches of the bar covered by widgets, merged and sorted. The pet
+  // may walk over them but only comes to rest outside. Plugins get no view of
+  // the bar's slots, so the shell's geometry dump is polled while the pet is up.
+  function occupied() { return wd.occ || [] }
+
+  function takeGeometry(text) {
+    var rows
+    try { rows = JSON.parse(text) } catch (e) { return }
+    var list = []
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i]
+      if (r && r.visible && r.width > 0 && r.height > 0) list.push({ a: r.x, b: r.x + r.width })
+    }
+    list.sort(function (l, r) { return l.a - r.a })
+    var merged = []
+    for (var j = 0; j < list.length; j++) {
+      var last = merged.length ? merged[merged.length - 1] : null
+      if (last && list[j].a <= last.b) last.b = Math.max(last.b, list[j].b)
+      else merged.push({ a: list[j].a, b: list[j].b })
+    }
+    wd.occ = merged
+  }
+
+  Process {
+    id: geom
+    command: ["omarchy-shell", "shell", "debugBarGeometry"]
+    stdout: StdioCollector { onStreamFinished: bp.takeGeometry(text) }
+  }
+
+  Timer {
+    interval: 1500
+    repeat: true
+    running: win.visible
+    triggeredOnStart: true
+    onTriggered: if (!geom.running) geom.running = true
+  }
+
+  function isFree(x) {
+    var half = spriteW() / 2 + 4, occ = occupied()
+    for (var i = 0; i < occ.length; i++) if (x + half > occ[i].a && x - half < occ[i].b) return false
+    return true
+  }
+
+  // The free spot nearest to x, or the middle of the bar when nothing fits.
+  function restSpot(x) {
+    var half = spriteW() / 2 + 4, occ = occupied()
+    var best = -1, bestD = 1e9, lo = 0
+    for (var i = 0; i <= occ.length; i++) {
+      var hi = i < occ.length ? occ[i].a : barLength
+      if (hi - lo >= half * 2) {
+        var c = Math.max(lo + half, Math.min(hi - half, x))
+        if (Math.abs(c - x) < bestD) { bestD = Math.abs(c - x); best = c }
+      }
+      if (i < occ.length) lo = occ[i].b
+    }
+    return best < 0 ? barLength / 2 : best
   }
 
   function setBehavior(name) {
     var b = Anim.BEHAVIORS[name]
+    var forced = !b.move && !isFree(wd.x)
+    if (forced) { name = "walk"; b = Anim.BEHAVIORS.walk }
     var margin = spriteW() / 2 + 6
     var target = wd.x
     if (b.move) {
       var reach = barLength * [0, 0.05, 0.1, 0.2][b.move]
       target = wd.x + (rnd() < 0.5 ? -1 : 1) * reach * (0.5 + rnd() * 0.5)
-      target = avoidCentre(Math.max(margin, Math.min(barLength - margin, target)))
-      if (Math.abs(target - wd.x) < 24) target = avoidCentre(Math.max(margin, Math.min(barLength - margin, wd.x + (wd.x > barLength / 2 ? -1 : 1) * reach * 0.5)))
+      target = Math.max(margin, Math.min(barLength - margin, target))
+      if (!forced && Math.abs(target - wd.x) < 24) target = Math.max(margin, Math.min(barLength - margin, wd.x + (wd.x > barLength / 2 ? -1 : 1) * reach * 0.5))
+      target = restSpot(target)
       wd.face = target >= wd.x ? 1 : -1
     }
     wd.beh = { name: name, start: now(), dur: Anim.durationOf(name, rnd), startX: wd.x, targetX: target }
@@ -102,7 +157,7 @@ Item {
     var i
     var half = spriteW() / 2 + 4
 
-    if (wd.x === 0) wd.x = Math.min(barLength - half, barLength * 0.72)
+    if (wd.x === 0) wd.x = restSpot(Math.min(barLength - half, barLength * 0.72))
     wd.x = Math.max(half, Math.min(barLength - half, wd.x))
 
     var pose = null
@@ -111,12 +166,27 @@ Item {
     wd.moving = false
 
     if (hatched) {
+      if (!sleeping) wd.sleepTo = undefined
       if (wd.react && t > wd.react.start + wd.react.dur) wd.react = null
       if (sleeping) {
         wd.beh = null
-        pose = Anim.composePose("nap", 0, ts, "sleepy")
-        pose.rot = 0; pose.eyes = "closed"; pose.mouth = "none"; pose.tailAmp = 0.4
-        if (t - wd.lastZ > 1600) { wd.lastZ = t; wd.particles.push({ type: "zzz", x: wd.x + spriteW() * 0.45, y: win.height - spriteW() * 0.8, vx: 5, vy: -9, life: 2, age: 0 }) }
+        if (wd.sleepTo === undefined && !isFree(wd.x)) {
+          var rs = restSpot(wd.x)
+          if (Math.abs(rs - wd.x) > 1) wd.sleepTo = rs
+        }
+        if (wd.sleepTo !== undefined) {
+          // Not yet on a free spot: shuffle there before dozing off.
+          var dxs = wd.sleepTo - wd.x, stp = 90 * dt
+          wd.face = dxs >= 0 ? 1 : -1
+          if (Math.abs(dxs) <= stp) { wd.x = wd.sleepTo; wd.sleepTo = undefined }
+          else wd.x += (dxs > 0 ? 1 : -1) * stp
+          wd.moving = true
+          pose = Anim.composePose("walk", (ts * 0.6) % 1, ts, "sleepy")
+        } else {
+          pose = Anim.composePose("nap", 0, ts, "sleepy")
+          pose.rot = 0; pose.eyes = "closed"; pose.mouth = "none"; pose.tailAmp = 0.4
+        }
+        if (!wd.moving && t - wd.lastZ > 1600) { wd.lastZ = t; wd.particles.push({ type: "zzz", x: wd.x + spriteW() * 0.45, y: win.height - spriteW() * 0.8, vx: 5, vy: -9, life: 2, age: 0 }) }
       } else if (wd.react) {
         pose = Anim.composePose(wd.react.name, Math.min(1, (t - wd.react.start) / wd.react.dur), ts, mood)
       } else if (t < wd.strokeUntil) {

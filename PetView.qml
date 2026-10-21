@@ -3,6 +3,8 @@
 // state only; the numbers (stats, coins, xp) belong to `ctl` (Pet.qml).
 
 import QtQuick
+import Quickshell
+import Quickshell.Io
 import "Sprites.js" as Sprites
 import "Anim.js" as Anim
 import "Scenes.js" as Scenes
@@ -427,10 +429,32 @@ Item {
 
   // ------------------------------------------------------------- painting
 
+  // The desktop wallpaper is the backdrop. The painted room only shows when
+  // there is no still image to use (a video wallpaper, or none set).
+  property string wallpaper: ""
+  Process {
+    id: wallpaperPath
+    command: ["readlink", "-f", Quickshell.env("HOME") + "/.local/state/omarchy/current/background"]
+    stdout: StdioCollector { onStreamFinished: view.wallpaper = String(text).trim() }
+  }
+  onActiveChanged: if (active) wallpaperPath.running = true
+  Component.onCompleted: if (active) wallpaperPath.running = true
+
+  Image {
+    id: wallpaperImage
+    anchors.fill: parent
+    visible: view.active && status === Image.Ready
+    source: view.wallpaper !== "" ? "file://" + view.wallpaper : ""
+    fillMode: Image.PreserveAspectCrop
+    asynchronous: true
+    cache: false
+    sourceSize.width: 1280
+  }
+
   Canvas {
     id: bg
     anchors.fill: parent
-    visible: view.active
+    visible: view.active && wallpaperImage.status !== Image.Ready
     onPaint: {
       var ctx = getContext("2d")
       ctx.reset()

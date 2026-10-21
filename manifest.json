@@ -2,11 +2,13 @@
   "schemaVersion": 1,
   "id": "io.github.taiku666.omarchy-pet",
   "name": "Omarchy Pet",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "taiku666",
   "license": "MIT",
   "description": "A tiny pixel-art Tamagotchi that lives on your desktop: pick a pet, feed it, play, pet it, and watch it grow.",
-  "kinds": ["panel"],
+  "kinds": [
+    "panel"
+  ],
   "keepLoaded": true,
   "entryPoints": {
     "panel": "Pet.qml"
