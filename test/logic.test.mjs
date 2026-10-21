@@ -243,3 +243,13 @@ test("mergeState clamps the saved volume to 0-100", () => {
   assert.equal(L.mergeState({ settings: { volume: "--evil" } }, NOW).settings.volume, 0);
   assert.equal(L.mergeState({ settings: { volume: 40 } }, NOW).settings.volume, 40);
 });
+
+test("toys unlock at spread-out levels with rising prices", () => {
+  const levels = L.TOY_ORDER.map((id) => L.TOYS[id].level);
+  const costs = L.TOY_ORDER.map((id) => L.TOYS[id].cost);
+  assert.equal(levels[0], 1);
+  for (let i = 1; i < levels.length; i++) {
+    assert.ok(levels[i] >= levels[i - 1] + 1, `toy ${i} unlocks too close to the previous one`);
+    assert.ok(costs[i] > costs[i - 1], `toy ${i} should cost more than the previous one`);
+  }
+});
