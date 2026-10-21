@@ -11,6 +11,15 @@ switch themes.
     <img src="preview.png" alt="The pet on the bar and its care card" width="360">
 </div>
 
+The pets are painted from your theme, not from a fixed palette. On a dark theme each
+one wears your widgets' text colour, tinted with its own hue and a single accent; on
+a light theme it is a soft version of that hue. They sit quietly in the bar and follow
+every theme switch.
+
+<div align="center">
+    <img src="assets/gallery.png" alt="All eight pets in four Omarchy themes" width="720">
+</div>
+
 ## Install
 
 ```sh
@@ -106,10 +115,11 @@ from the bar until you `show` it again).
 node --test test/                 # rules, sprites, animation tables
 python3 tools/make-sfx.py         # regenerate assets/sfx
 node tools/preview.mjs out.svg    # contact sheet of the sprites
+node tools/gallery.mjs g.svg      # every pet in a few themes (README gallery)
 ```
 
 `Logic.js` holds the rules and is pure, `Sprites.js` the pixel art, `Anim.js` the
-behaviours, `Scenes.js` the fallback backdrops, `Theme.qml` the colours.
+behaviours, `Scenes.js` the fallback backdrops, `Palette.js` turns a theme into pet colours, `Theme.qml` the rest of the colours.
 
 ## License
 

@@ -8,6 +8,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+import "Palette.js" as Palette
 
 QtObject {
   id: t
@@ -57,44 +58,14 @@ QtObject {
   }
 
   function css(c) { return String(Qt.color(c)) }
+  function solid(c) { var q = Qt.color(c); return String(Qt.rgba(q.r, q.g, q.b, 1)) }
   function lum(c) { return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b }
 
-  // Which theme hue each pet wears.
-  readonly property var petHue: ({
-    cat: "orange", dog: "brown", bunny: "bright_foreground", frog: "green",
-    panda: "bright_foreground", fox: "red", dragon: "cyan", penguin: "magenta"
-  })
-
+  // The pets' colours come from Palette.js, shared with tools/gallery.mjs.
   function petPalette(type) {
-    var fgc = hue("bright_foreground", text)
-    var base = hue(petHue[type], accent)
-    if (type === "dog" && !hues["brown"]) base = mix(hue("orange", accent), "#000000", 0.25)
-    var black = Qt.color("#000000")
-    var dark = mix(bg, fgc, 0.1)
-    var p = {
-      b: css(base),
-      l: css(mix(base, fgc, 0.68)),
-      d: css(mix(base, black, 0.25)),
-      o: css(mix(base, black, 0.58)),
-      p: css(mix(hue("red", urgent), fgc, 0.38)),
-      a: css(mix(base, hue("yellow", accent), 0.5)),
-      w: css(fgc),
-      k: css(dark),
-      e: css(mix(bg, black, 0.5)),
-      m: css(mix(bg, black, 0.35)),
-      t: css(hue("red", urgent)),
-      gold: css(gold),
-      cheek: Math.round(hue("red", urgent).r * 255) + "," + Math.round(hue("red", urgent).g * 255) + "," + Math.round(hue("red", urgent).b * 255),
-      hat: {
-        o: css(mix(bg, black, 0.3)), a: css(hue("magenta", accent)), w: css(fgc), y: css(gold),
-        c: css(hue("cyan", accent)), g: css(hue("green", accent)), b: css(hue("blue", accent)),
-        v: css(mix(hue("blue", accent), black, 0.45)), k: css(mix(bg, black, 0.45)),
-        r: css(hue("red", urgent)), p: css(mix(hue("magenta", accent), fgc, 0.4))
-      }
-    }
-    if (type === "panda") { p.d = css(mix(fgc, bg, 0.3)); p.l = css(fgc); p.o = css(mix(bg, black, 0.5)) }
-    if (type === "penguin") { p.k = css(mix(base, black, 0.55)); p.d = css(mix(base, black, 0.7)); p.o = css(mix(base, black, 0.82)); p.a = css(hue("orange", accent)) }
-    return p
+    return Palette.petPalette(type, {
+      bg: solid(bg), text: solid(text), accent: solid(accent), urgent: solid(urgent), hues: hues
+    })
   }
 
   // Colours the room backgrounds draw with.

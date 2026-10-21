@@ -203,6 +203,7 @@ var EYE = "#2b2433"
 var CUR = null
 function E() { return (CUR && CUR.e) || EYE }
 function HP() { return (CUR && CUR.hat) || HAT_PAL }
+function themed(k, fallback) { return (CUR && CUR[k]) || fallback }
 function GOLD() { return (CUR && CUR.gold) || "#ffd966" }
 
 // ---------------------------------------------------------------- runs
@@ -280,7 +281,7 @@ function drawMouth(ctx, S, kind, mx, my, wide) {
       rect(ctx, S, mx + 2 + half - 1, my, 1, 1, c); break
     case "open":
       rect(ctx, S, mx - half + 1, my, 2 + (half - 1) * 2, 2, c)
-      rect(ctx, S, mx, my + 1, 2, 1, "#ff8fa8"); break
+      rect(ctx, S, mx, my + 1, 2, 1, themed("p", "#ff8fa8")); break
     case "chew":
       rect(ctx, S, mx, my, 2, 1, c); break
     case "sad":
@@ -292,7 +293,7 @@ function drawMouth(ctx, S, kind, mx, my, wide) {
     case "flat":
       rect(ctx, S, mx - half + 1, my, 2 + (half - 1) * 2, 1, c); break
     case "tongue":
-      rect(ctx, S, mx - 1, my, 4, 1, c); rect(ctx, S, mx + 1, my + 1, 2, 1, "#ff8fa8"); break
+      rect(ctx, S, mx - 1, my, 4, 1, c); rect(ctx, S, mx + 1, my + 1, 2, 1, themed("p", "#ff8fa8")); break
     case "zzz": case "none": break
   }
 }
@@ -302,13 +303,16 @@ function drawNose(ctx, S, face) {
   if (!n) return
   var w = n.w || 2
   var x = 10 - w / 2
-  rect(ctx, S, x, n.y, w, 1, n.c)
-  if (n.dots) { rect(ctx, S, x - 1, n.y, 1, 1, n.c); rect(ctx, S, x + w, n.y, 1, 1, n.c) }
+  // Pink noses take the palette's pink; the dragon's dots its outline colour.
+  var c = n.c === "#ff8fa8" ? themed("p", n.c) : n.dots ? themed("o", n.c) : n.c
+  rect(ctx, S, x, n.y, w, 1, c)
+  if (n.dots) { rect(ctx, S, x - 1, n.y, 1, 1, c); rect(ctx, S, x + w, n.y, 1, 1, c) }
 }
 
 function drawBeak(ctx, S, open) {
-  rect(ctx, S, 8, 8, 4, 1, "#ffb347"); rect(ctx, S, 9, 9, 2, 1, "#ff9a2e")
-  if (open) rect(ctx, S, 9, 10, 2, 1, "#ff9a2e")
+  var bk = themed("a", "#ffb347"), bd = themed("aw", "#ff9a2e")
+  rect(ctx, S, 8, 8, 4, 1, bk); rect(ctx, S, 9, 9, 2, 1, bd)
+  if (open) rect(ctx, S, 9, 10, 2, 1, bd)
 }
 
 function drawCheeks(ctx, S, face, amount) {
@@ -345,7 +349,7 @@ function drawTail(ctx, S, type, stage, phase, amp) {
         seg(ctx, S, 19 + i * 0.5 + Math.sin(phase) * amp * (i / 4) * 1.6, 14 - i * 1.1, 2, 2, P.d)
       break
     }
-    case "bunny": rect(ctx, S, 18.5, 14.5, 3, 3, "#ffffff"); rect(ctx, S, 18.5, 16, 3, 1, "#ece0e6"); break
+    case "bunny": rect(ctx, S, 18.5, 14.5, 3, 3, P.w); rect(ctx, S, 18.5, 16, 3, 1, P.l); break
     case "panda": rect(ctx, S, 19, 15, 2, 2, P.k); break
     case "fox": {
       var tails = stage >= 3 ? 3 : 1
@@ -356,7 +360,7 @@ function drawTail(ctx, S, type, stage, phase, amp) {
           var w = 3 + (i > 1 && i < 6 ? 1 : 0)
           var x = 18 + i * 0.9 + spread * i * 0.55 + Math.sin(phase + k * 0.9 - i * 0.45) * amp * f
           var y = 14 - i * 0.9 - Math.abs(spread) * i * 0.2
-          seg(ctx, S, x, y, w, 3, i >= 6 ? "#fff4e6" : P.b)
+          seg(ctx, S, x, y, w, 3, i >= 6 ? (P.w || "#fff4e6") : P.b)
           if (i === 0) seg(ctx, S, x, y + 3, w, 1, P.o)
         }
       }
@@ -383,7 +387,7 @@ function drawWings(ctx, S, type, stage, flap) {
       var w = Math.max(1, size - Math.abs(r - 1) + 1)
       var lift = flap * (size - r * 0.4) * 0.9
       var x = dir < 0 ? 1.5 - w : 18.5
-      seg(ctx, S, x - (dir < 0 ? lift * 0.3 : -lift * 0.3), 6 + r - lift * 0.6, w, 1, r % 2 ? P.a : "#ffb59a")
+      seg(ctx, S, x - (dir < 0 ? lift * 0.3 : -lift * 0.3), 6 + r - lift * 0.6, w, 1, r % 2 ? P.a : (P.aw || "#ffb59a"))
     }
   }
 }
@@ -406,10 +410,10 @@ function drawFlippers(ctx, S, type, flap) {
 function drawAdultMark(ctx, S, type, t) {
   switch (type) {
     case "cat": rect(ctx, S, 9, 5, 2, 1, GOLD()); break
-    case "dog": rect(ctx, S, 4, 14, 12, 2, "#ff6b6b"); rect(ctx, S, 3, 14, 1, 2, "#c94b4b"); rect(ctx, S, 16, 14, 1, 2, "#c94b4b"); break
+    case "dog": rect(ctx, S, 4, 14, 12, 2, themed("t", "#ff6b6b")); rect(ctx, S, 3, 14, 1, 2, themed("o", "#c94b4b")); rect(ctx, S, 16, 14, 1, 2, themed("o", "#c94b4b")); break
     case "bunny": rect(ctx, S, 9, 7, 2, 1, GOLD()); rect(ctx, S, 8, 8, 1, 1, GOLD()); break
     case "frog": rect(ctx, S, 7, 10, 6, 1, GOLD()); break
-    case "panda": rect(ctx, S, 15, 4, 1, 3, "#7fc97f"); rect(ctx, S, 16, 3, 2, 1, "#7fc97f"); break
+    case "panda": rect(ctx, S, 15, 4, 1, 3, themed("a", "#7fc97f")); rect(ctx, S, 16, 3, 2, 1, themed("a", "#7fc97f")); break
     case "fox": rect(ctx, S, 9, 6, 2, 1, GOLD()); break
     case "dragon": rect(ctx, S, 9, 5, 2, 1, GOLD()); break
     case "penguin": rect(ctx, S, 4, 8, 2, 2, GOLD()); rect(ctx, S, 14, 8, 2, 2, GOLD()); break
