@@ -90,9 +90,9 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     width: 30
     horizontalAlignment: Text.AlignRight
-    text: bar.value >= 99.5 ? "MAX" : Math.round(bar.value)
+    text: bar.value >= 98 ? "MAX" : Math.round(bar.value)
     textFormat: Text.PlainText
-    color: bar.value >= 99.5 ? th.gold : th.dim
+    color: bar.value >= 98 ? th.gold : th.dim
     font.pixelSize: 10
     font.bold: true
     font.family: Style.font.family
