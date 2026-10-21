@@ -200,6 +200,7 @@ function mergeState(saved, now) {
   function merge(dst, src) {
     for (var k in src) {
       if (!Object.prototype.hasOwnProperty.call(src, k)) continue
+      if (k === "__proto__" || k === "constructor" || k === "prototype") continue
       if (src[k] !== null && typeof src[k] === "object" && !Array.isArray(src[k]) &&
           dst[k] !== null && typeof dst[k] === "object" && !Array.isArray(dst[k])) merge(dst[k], src[k])
       else dst[k] = src[k]
@@ -214,6 +215,7 @@ function mergeState(saved, now) {
   STAT_KEYS.forEach(function (k) { base.stats[k] = clamp(Number(base.stats[k]) || 0, 0, 100) })
   base.level = Math.max(1, Math.floor(Number(base.level) || 1))
   base.coins = Math.max(0, Math.floor(Number(base.coins) || 0))
+  if (base.settings && typeof base.settings === "object") base.settings.volume = clamp(Number(base.settings.volume) || 0, 0, 100)
   if (typeof base.pet === "object" && base.pet) base.pet.name = cleanName(base.pet.name)
   return base
 }

@@ -93,3 +93,30 @@ test("pickBehavior is varied, avoids repeats, and sad pets rest", () => {
   for (let i = 0; i < 300; i++) if (["idle", "sit", "look"].includes(A.pickBehavior("dog", "sad", r, ""))) calm++;
   assert.ok(calm > 200, `sad dog calm ${calm}/300`);
 });
+
+test("every pet has a walking behaviour that animates its feet", () => {
+  const ctx2 = vm.createContext({});
+  vm.runInContext(readFileSync(join(here, "..", "Anim.js"), "utf8"), ctx2);
+  const A = ctx2;
+  for (const [pet, table] of Object.entries(A.PERSONALITY)) {
+    const walkers = Object.keys(table).filter((n) => A.BEHAVIORS[n].move && A.composePose(n, 0.5, 0, "happy").gaitAmt > 0);
+    assert.ok(walkers.length > 0, `${pet} has no walk cycle`);
+    for (const n of walkers) {
+      const a = A.composePose(n, 0.5, 0, "happy"), b = A.composePose(n, 0.55, 0, "happy");
+      assert.ok(Number.isFinite(a.gait) && a.gait !== b.gait, `${pet}/${n} gait does not advance`);
+      assert.equal(A.composePose(n, 0, 0, "happy").gaitAmt, 0, `${n} starts grounded`);
+    }
+  }
+});
+
+test("drawPet adds feet only while walking", () => {
+  const S = ctx;
+  const count = (extra) => {
+    let n = 0;
+    const g = { fillStyle: "", save() {}, restore() {}, translate() {}, fillRect() { n++; } };
+    S.drawPet(g, Object.assign({ type: "cat", S: 4, stage: 1 }, extra));
+    return n;
+  };
+  assert.ok(count({ gait: 0, gaitAmt: 1 }) > count({}));
+  assert.equal(count({ gait: 0, gaitAmt: 0 }), count({}));
+});

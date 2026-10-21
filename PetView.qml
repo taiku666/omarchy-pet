@@ -491,6 +491,7 @@ Item {
     asynchronous: true
     cache: false
     sourceSize.width: 1280
+    sourceSize.height: 1280
   }
 
   Rectangle {
@@ -558,7 +559,7 @@ Item {
       var tailPhase = t / 1000 * (pose.tailAmp > 2.5 ? 12 : 4)
       Sprites.drawPet(ctx, {
         pal: ctl.th.petPalette(petType), type: petType, S: scale, stage: stageOf(),
-        tailPhase: tailPhase, tailAmp: pose.tailAmp, wing: pose.wing,
+        tailPhase: tailPhase, tailAmp: pose.tailAmp, wing: pose.wing, gait: pose.gait, gaitAmt: pose.gaitAmt, gaitSync: pose.gaitSync,
         eyes: eyes, lookX: pose.lookX, lookY: pose.lookY, tear: moodNow === "sad" ? Math.floor(t / 350) : 0,
         mouth: mouth, blush: blush, hat: st.equipped.hat, hatBob: Math.round(Math.sin(t / 400))
       })

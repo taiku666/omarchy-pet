@@ -486,6 +486,11 @@ function drawPet(ctx, o) {
   var face = FACES[o.type]
   ctx.save()
   ctx.translate(-W * S / 2, -H * S)
+  // While walking the body is raised by up to two rows and the feet fill the gap.
+  var lift = o.gaitAmt ? Math.round(Math.min(1, o.gaitAmt) * 2) : 0
+  if (lift > 0) drawFeet(ctx, S, o.type, lift, o.gait || 0, !!o.gaitSync)
+  ctx.save()
+  ctx.translate(0, -lift * S)
   drawTail(ctx, S, o.type, o.stage, o.tailPhase || 0, o.tailAmp || 0)
   drawWings(ctx, S, o.type, o.stage, o.wing || 0)
   var runs = runsFor(o.type)
@@ -504,6 +509,28 @@ function drawPet(ctx, o) {
   drawFlippers(ctx, S, o.type, o.wing || 0)
   if (o.hat && o.hat !== "none") drawHat(ctx, S, o.type, o.hat, o.hatBob || 0)
   ctx.restore()
+  ctx.restore()
+}
+
+// Two boots under the raised body. `phase` is the stride in radians: feet swap
+// every half turn, the lifted one rises a row and swings forward. With `sync`
+// both feet tuck together (hoppers).
+var FOOT_FILL = { panda: "k", fox: "d", dragon: "d", penguin: "a" }
+
+function drawFeet(ctx, S, type, lift, phase, sync) {
+  var P = CUR || PALETTES[type]
+  var fill = P[FOOT_FILL[type] || "b"]
+  for (var side = 0; side < 2; side++) {
+    var s = sync ? Math.sin(phase) : Math.sin(phase + side * Math.PI)
+    var up = s > 0.3 && lift > 1
+    var swing = sync ? 0 : Math.round(Math.cos(phase + side * Math.PI))
+    var x = (side === 0 ? 4 : 12) + swing
+    var y = H - lift
+    var h = up ? lift - 1 : lift
+    if (h < 1) continue
+    rect(ctx, S, x, y, 4, h, P.o)
+    rect(ctx, S, x + 1, y, 2, 1, fill)
+  }
 }
 
 // ------------------------------------------------------------- particles

@@ -21,6 +21,14 @@ function hopArc(p, height) {
   }
 }
 
+// Feet for the walk cycle: `phase` is the stride in radians (one step per half
+// turn), `sync` makes both feet move together for hoppers. The body is raised
+// while the feet show, easing in and out over the ends of the behaviour.
+function stride(p, phase, sync) {
+  return { gait: phase, gaitAmt: sat(p, 0, 0.1) * (1 - sat(p, 0.9, 1)), gaitSync: !!sync }
+}
+function withGait(o, g) { for (var k in g) o[k] = g[k]; return o }
+
 var BEHAVIORS = {
   idle:    { dur: [2500, 5000], pose: function (p) { return {} } },
   look:    { dur: [1600, 2600], pose: function (p) {
@@ -40,19 +48,21 @@ var BEHAVIORS = {
     var e = env(p)
     return { sy: 1 + 0.07 * e, sx: 1 - 0.03 * e, eyes: "closed", mouth: e > 0.25 ? "open" : "flat" } } },
   walk:    { dur: [1600, 2800], move: 1, pose: function (p) {
-    return { dy: -Math.abs(Math.sin(p * 18)) * 3, rot: Math.sin(p * 18) * 0.03 } } },
+    return withGait({ dy: -Math.abs(Math.sin(p * 18)) * 3, rot: Math.sin(p * 18) * 0.03 }, stride(p, p * 18)) } },
   sit:     { dur: [2500, 4500], pose: function (p) { return { sy: 0.96, tailAmp: 0.6 } } },
   dance:   { dur: [1800, 2400], pose: function (p) {
     return { rot: Math.sin(p * 20) * 0.1, dy: -Math.abs(Math.sin(p * 10)) * 8, eyes: "happy", mouth: "open", tailAmp: 3 } } },
 
   // --- cat
+  catWalk: { dur: [1800, 2800], move: 1, pose: function (p) {
+    return withGait({ dy: -Math.abs(Math.sin(p * 16)) * 1.5, rot: Math.sin(p * 16) * 0.015, tailAmp: 2.2, mouth: "smile" }, stride(p, p * 16)) } },
   catFlick: { dur: [1800, 2600], pose: function (p) {
     return { tailAmp: 4, lookX: Math.sin(p * 9), lookY: -1, sx: 1.02, mouth: "chew" } } },
   catKnead: { dur: [2000, 2600], pose: function (p) {
     return { sy: 1 - 0.05 * Math.abs(Math.sin(p * 14)), eyes: "closed", mouth: "smile", tailAmp: 1 } } },
   // --- dog
   dogRun: { dur: [1500, 2200], move: 2, pose: function (p) {
-    return { dy: -Math.abs(Math.sin(p * 24)) * 5, sx: 1 + 0.05 * Math.sin(p * 24), mouth: "tongue", tailAmp: 4.2, eyes: "happy" } } },
+    return withGait({ dy: -Math.abs(Math.sin(p * 24)) * 5, sx: 1 + 0.05 * Math.sin(p * 24), mouth: "tongue", tailAmp: 4.2, eyes: "happy" }, stride(p, p * 24)) } },
   dogBark: { dur: [1200, 1500], pose: function (p) {
     var b = Math.floor(p * 3) % 3, local = (p * 3) % 1
     var e = env(local)
@@ -62,6 +72,9 @@ var BEHAVIORS = {
     return { dy: Math.abs(Math.sin(p * 20)) * 1.5, mouth: Math.sin(p * 30) > 0 ? "chew" : "flat", fx: { nibble: 1 } } } },
   bunnyTwitch: { dur: [1000, 1400], pose: function (p) {
     return { sx: 1 + 0.025 * Math.sin(p * 40), lookX: Math.sin(p * 6), mouth: "flat" } } },
+  bunnyScamper: { dur: [1400, 2000], move: 1, pose: function (p) {
+    var q = (p * 3) % 1
+    var h = hopArc(q, 9); h.mouth = "smile"; return withGait(h, stride(p, Math.PI * sat(q, 0.18, 0.82), true)) } },
   bunnyBinky: { dur: [1000, 1200], pose: function (p) {
     var h = hopArc(p, 24); h.rot = Math.sin(p * Math.PI * 2) * 0.35; h.eyes = "happy"; h.mouth = "open"; return h } },
   // --- frog
@@ -72,10 +85,12 @@ var BEHAVIORS = {
     var puff = Math.max(0, Math.sin(p * Math.PI * 4))
     return { sx: 1 + 0.12 * puff, sy: 1 + 0.08 * puff, eyes: puff > 0.5 ? "closed" : "open", mouth: puff > 0.5 ? "open" : "smile" } } },
   frogHop: { dur: [900, 1100], move: 1, pose: function (p) {
-    var h = hopArc(p, 22); h.mouth = "smile"; return h } },
+    var h = hopArc(p, 22); h.mouth = "smile"; return withGait(h, stride(p, Math.PI * sat(p, 0.18, 0.82), true)) } },
   // --- panda
   pandaMunch: { dur: [2600, 3400], pose: function (p) {
     return { dy: Math.abs(Math.sin(p * 16)) * 1.2, mouth: Math.sin(p * 24) > 0 ? "chew" : "flat", eyes: "happy", fx: { bamboo: 1 } } } },
+  pandaWaddle: { dur: [2000, 3000], move: 1, pose: function (p) {
+    return withGait({ rot: Math.sin(p * 11) * 0.08, dy: -Math.abs(Math.sin(p * 11)) * 1.5, mouth: "smile" }, stride(p, p * 11)) } },
   pandaRoll: { dur: [1600, 2000], move: 2, pose: function (p) {
     return { rot: p * Math.PI * 4, dy: -6 * env(p) - 6, eyes: "happy", mouth: "open", fx: { rollCenter: 1 } } } },
   // --- fox
@@ -85,7 +100,9 @@ var BEHAVIORS = {
     return { sy: 1 - 0.2 * crouch + 0.1 * env(leap), sx: 1 + 0.15 * crouch, dy: -Math.sin(Math.PI * leap) * 26,
       lookX: 1, eyes: crouch > 0.2 ? "wide" : "open", tailAmp: crouch > 0.2 ? 3.5 : 1.5, rot: -0.15 * env(leap) } } },
   foxZoom: { dur: [1800, 2400], move: 3, pose: function (p) {
-    return { dy: -Math.abs(Math.sin(p * 30)) * 4, rot: -0.1, eyes: "happy", mouth: "open", tailAmp: 4.5 } } },
+    return withGait({ dy: -Math.abs(Math.sin(p * 30)) * 4, rot: -0.1, eyes: "happy", mouth: "open", tailAmp: 4.5 }, stride(p, p * 30)) } },
+  foxTrot: { dur: [1800, 2600], move: 1, pose: function (p) {
+    return withGait({ dy: -Math.abs(Math.sin(p * 20)) * 2.5, rot: -0.04, tailAmp: 3, mouth: "smile" }, stride(p, p * 20)) } },
   foxTilt: { dur: [1400, 2000], pose: function (p) {
     return { rot: -0.18 * env(p * 1.2), lookY: -1, eyes: "wide", mouth: "oh" } } },
   // --- dragon
@@ -95,11 +112,13 @@ var BEHAVIORS = {
   dragonFlap: { dur: [1800, 2400], pose: function (p) {
     var lift = env(sat(p, 0, 0.2)) > 0 ? Math.min(1, sat(p, 0, 0.2)) * (1 - sat(p, 0.85, 1)) : 0
     return { dy: -16 * lift, wing: Math.sin(p * 40) * 1, eyes: "happy", mouth: "smile" } } },
+  dragonStomp: { dur: [2000, 3000], move: 1, pose: function (p) {
+    return withGait({ dy: -Math.abs(Math.sin(p * 12)) * 2, rot: Math.sin(p * 12) * 0.04, wing: 0.15 + Math.sin(p * 12) * 0.15, mouth: "smile" }, stride(p, p * 12)) } },
   dragonHoard: { dur: [1800, 2400], pose: function (p) {
     return { eyes: "wide", lookY: 1, mouth: "smile", tailAmp: 2.5, fx: { sparkle: 1 } } } },
   // --- penguin
   penguinWaddle: { dur: [1800, 2800], move: 1, pose: function (p) {
-    return { rot: Math.sin(p * 14) * 0.14, dy: -Math.abs(Math.sin(p * 14)) * 2, wing: Math.sin(p * 14) * 0.6 } } },
+    return withGait({ rot: Math.sin(p * 14) * 0.14, dy: -Math.abs(Math.sin(p * 14)) * 2, wing: Math.sin(p * 14) * 0.6 }, stride(p, p * 14)) } },
   penguinSlide: { dur: [1800, 2200], move: 3, pose: function (p) {
     var down = sat(p, 0, 0.15) * (1 - sat(p, 0.85, 1))
     return { rot: Math.PI / 2 * 0.92 * down, dy: 2 * down, eyes: "happy", mouth: "open", wing: 0.6, fx: { slide: down, rollCenter: 1 } } } },
@@ -124,13 +143,13 @@ var BEHAVIORS = {
 // What each pet does when left alone, weighted. Everyone also gets the generic
 // pool, so a cat that is "mostly" doing cat things still looks around and hops.
 var PERSONALITY = {
-  cat:     { stretch: 3, catFlick: 4, catKnead: 2, look: 3, sit: 3, yawn: 2, walk: 2, hop: 0.5 },
+  cat:     { stretch: 3, catFlick: 4, catKnead: 2, catWalk: 3, look: 3, sit: 3, yawn: 2, walk: 1, hop: 0.5 },
   dog:     { dogRun: 3, dogBark: 3, wiggle: 3, look: 2, hop: 2, walk: 2, sit: 1.5 },
-  bunny:   { bunnyNibble: 3, bunnyTwitch: 3, bunnyBinky: 2, hop: 4, doubleHop: 2, look: 3, sit: 1.5 },
+  bunny:   { bunnyNibble: 3, bunnyTwitch: 3, bunnyBinky: 2, bunnyScamper: 3, hop: 3, doubleHop: 2, look: 3, sit: 1.5 },
   frog:    { frogTongue: 4, frogCroak: 3, frogHop: 3, look: 2, sit: 4, yawn: 1 },
-  panda:   { pandaMunch: 4, pandaRoll: 2, yawn: 3, sit: 4, stretch: 2, look: 2, walk: 1 },
-  fox:     { foxPounce: 3, foxZoom: 2, foxTilt: 3, look: 3, hop: 2, walk: 2, sit: 1.5 },
-  dragon:  { dragonFire: 3, dragonFlap: 3, dragonHoard: 2, look: 2, stretch: 1.5, walk: 1.5, sit: 1.5, hop: 1 },
+  panda:   { pandaMunch: 4, pandaRoll: 2, pandaWaddle: 3, yawn: 3, sit: 4, stretch: 2, look: 2, walk: 1 },
+  fox:     { foxPounce: 3, foxZoom: 2, foxTrot: 3, foxTilt: 3, look: 3, hop: 2, walk: 1, sit: 1.5 },
+  dragon:  { dragonFire: 3, dragonFlap: 3, dragonStomp: 3, dragonHoard: 2, look: 2, stretch: 1.5, walk: 0.5, sit: 1.5, hop: 1 },
   penguin: { penguinWaddle: 4, penguinSlide: 3, penguinFlap: 3, look: 2, sit: 2, hop: 1, dance: 1 }
 }
 
@@ -142,7 +161,7 @@ function weightsFor(type, mood) {
   for (k in base) out[k] = base[k]
   out.idle = 3
   out.look = (out.look || 1)
-  var active = ["hop", "doubleHop", "dance", "spin", "dogRun", "foxZoom", "foxPounce", "bunnyBinky", "penguinSlide", "frogHop", "wiggle", "dragonFlap", "pandaRoll"]
+  var active = ["hop", "doubleHop", "dance", "spin", "dogRun", "foxZoom", "foxPounce", "bunnyBinky", "penguinSlide", "frogHop", "bunnyScamper", "foxTrot", "wiggle", "dragonFlap", "pandaRoll"]
   var i
   if (mood === "playful") {
     for (i = 0; i < active.length; i++) if (out[active[i]]) out[active[i]] *= 2.2
@@ -190,7 +209,8 @@ function composePose(name, p, t, mood) {
     eyes: o.eyes, mouth: o.mouth,
     lookX: o.lookX || 0, lookY: o.lookY || 0,
     tailAmp: o.tailAmp === undefined ? 1 : o.tailAmp,
-    wing: o.wing || 0, blush: o.blush || 0, fx: o.fx || null
+    wing: o.wing || 0, blush: o.blush || 0, fx: o.fx || null,
+    gait: o.gait === undefined ? 0 : o.gait, gaitAmt: o.gaitAmt || 0, gaitSync: !!o.gaitSync
   }
   if (mood === "sad") { out.sy *= 0.95; out.tailAmp = 0.2 }
   return out

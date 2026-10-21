@@ -109,6 +109,18 @@ from the bar until you `show` it again).
 - Colours come from the active theme's `colors.toml` and the shell's popup colours,
   so there is nothing to configure.
 
+## Security
+
+- **No network.** The plugin makes no HTTP requests and fetches nothing remote.
+- **No installs.** It never installs, upgrades or removes packages, and never uses `sudo`.
+- **Fixed commands only.** Every process is started from an argument list, never a shell string:
+  `mkdir -p` (its data folder), `pw-play` (bundled sounds), `pgrep` (screensaver check),
+  `readlink -f` (current wallpaper) and `omarchy-shell shell debugBarGeometry` (bar layout).
+- **Local files only.** It writes `~/.local/share/omarchy-pet/state.json` (atomic writes) and reads
+  that file, the theme's `colors.toml` and the current wallpaper. The wallpaper is decoded at a capped size.
+- **Untrusted saves.** `state.json` is parsed defensively: prototype-polluting keys are ignored and
+  values such as stats, level, coins and volume are clamped. Covered by `test/logic.test.mjs`.
+
 ## Development
 
 ```sh

@@ -369,6 +369,7 @@ Item {
       Sprites.drawPet(ctx, {
         pal: th.petPalette(petType), type: petType, S: S, stage: Logic.stageForLevel(st.level),
         tailPhase: t / 1000 * (pose.tailAmp > 2.5 ? 12 : 4), tailAmp: pose.tailAmp * 0.6, wing: pose.wing,
+        gait: pose.gait, gaitAmt: pose.gaitAmt, gaitSync: pose.gaitSync,
         eyes: eyes, lookX: pose.lookX, lookY: pose.lookY, tear: 0, mouth: mouth, blush: blush,
         hat: st.equipped.hat, hatBob: 0
       })

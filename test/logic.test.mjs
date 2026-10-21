@@ -228,3 +228,18 @@ test("older saves with unlocked foods start with a few portions each", () => {
   assert.equal(s.pantry.cookie, 3);
   assert.equal(s.pantry.apple, undefined);
 });
+
+test("mergeState ignores prototype-polluting keys from a hostile save", () => {
+  const raw = '{"__proto__":{"polluted":1},"settings":{"__proto__":{"polluted2":1},"constructor":{"x":1}}}';
+  const s = L.mergeState(JSON.parse(raw), NOW);
+  assert.equal(vm.runInContext("({}).polluted", ctx), undefined);
+  assert.equal(vm.runInContext("({}).polluted2", ctx), undefined);
+  assert.equal(s.settings.sound, true);
+});
+
+test("mergeState clamps the saved volume to 0-100", () => {
+  assert.equal(L.mergeState({ settings: { volume: 900 } }, NOW).settings.volume, 100);
+  assert.equal(L.mergeState({ settings: { volume: -5 } }, NOW).settings.volume, 0);
+  assert.equal(L.mergeState({ settings: { volume: "--evil" } }, NOW).settings.volume, 0);
+  assert.equal(L.mergeState({ settings: { volume: 40 } }, NOW).settings.volume, 40);
+});
