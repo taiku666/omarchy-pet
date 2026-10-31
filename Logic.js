@@ -15,7 +15,7 @@ var MAX_MESSES = 4
 
 // Per-minute change while awake. Personality multiplies these.
 var DECAY = { hunger: 0.8, happiness: 0.45, energy: 0.4, cleanliness: 0.3, affection: 0.25 }
-var SLEEP_ENERGY_PER_SEC = 3
+var SLEEP_ENERGY_PER_SEC = 0.4
 var SLEEP_HUNGER_FACTOR = 0.3
 
 var PETS = {
@@ -142,7 +142,7 @@ var MILESTONE_ORDER = ["firstMeal", "pets50", "pets200", "games10", "clean10", "
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)) }
 
 // XP needed to go from `level` to the next.
-function xpForLevel(level) { return 40 + level * 25 }
+function xpForLevel(level) { return 80 + level * 60 }
 
 // Stage 0 is the egg; it is spent on the hatching screen, not on a level.
 function stageForLevel(level) {
@@ -344,7 +344,7 @@ function feed(state, foodId) {
   gain(state, "hunger", food.hunger * (fav ? 1.25 : 1))
   gain(state, "happiness", food.happiness * (fav ? 2.5 : 1))
   state.counters.feeds += 1
-  var xp = fav ? 6 : 4
+  var xp = fav ? 4 : 3
   var levels = addXp(state, xp)
   return { kind: fav ? "loved" : "ate", food: foodId, xp: xp, levels: levels }
 }
@@ -361,7 +361,7 @@ function pet(state, amount) {
 // `score` is 0..N from the minigame; coins and happiness scale with it.
 function playResult(state, game, score) {
   if (!state.pet) return null
-  var coins = Math.min(Math.round(score * 1.5), 40)
+  var coins = Math.min(Math.round(score * 1.2), 30)
   var joy = clamp(10 + score * 2, 10, 35)
   var tired = clamp(8 + score * 0.6, 8, 20)
   gain(state, "happiness", joy)
@@ -370,7 +370,7 @@ function playResult(state, game, score) {
   state.stats.energy = Math.max(state.stats.energy, STAT_FLOOR)
   state.coins += coins
   state.counters.games += 1
-  var xp = 6 + Math.min(score, 12)
+  var xp = 4 + Math.round(Math.min(score, 12) / 2)
   var levels = addXp(state, xp)
   return { kind: "play", coins: coins, xp: xp, levels: levels, score: score }
 }

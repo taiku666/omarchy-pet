@@ -65,9 +65,9 @@ test("sleeping restores energy and wakes at full", () => {
   const s = fresh();
   s.stats.energy = 40;
   L.startSleep(s);
-  L.step(s, 10, 1);
-  assert.ok(s.stats.energy > 60);
   L.step(s, 60, 1);
+  assert.ok(s.stats.energy > 60);
+  L.step(s, 200, 1);
   assert.equal(s.sleeping, false);
   assert.equal(s.stats.energy, 100);
 });
