@@ -229,7 +229,7 @@ Item {
     var lv = ps.level, st = Logic.stageForLevel(ps.level)
     var r = Logic.pet(ps, amount)
     if (!r) return null
-    if (ps.counters.pets % 10 === 0) Logic.addXp(ps, 2)
+    if (ps.counters.pets % 10 === 0 && r.needed) Logic.addXp(ps, 2)
     if (ps.level > lv || ps.counters.pets % 10 === 0) afterCare(lv, st)
     else { rev++; dirty = true; saveTimer.restart() }
     return r

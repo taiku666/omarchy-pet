@@ -74,6 +74,7 @@ Rectangle {
     anchors.top: parent.top; anchors.right: parent.right; anchors.margins: 4
     width: badgeText.implicitWidth + 10; height: 16; radius: 8
     color: th.gold
+    opacity: chip.dim ? 0.45 : 1
     Text { font.family: Style.font.family;
       id: badgeText
       anchors.centerIn: parent

@@ -15,6 +15,8 @@ var MAX_MESSES = 4
 
 // Per-minute change while awake. Personality multiplies these.
 var DECAY = { hunger: 0.8, happiness: 0.45, energy: 0.4, cleanliness: 0.3, affection: 0.25 }
+// A need at or above this counts as met: care for it earns no more XP.
+var NEEDS_CARE = 90
 var SLEEP_ENERGY_PER_SEC = 0.4
 var SLEEP_HUNGER_FACTOR = 0.3
 
@@ -352,10 +354,13 @@ function feed(state, foodId) {
 function pet(state, amount) {
   if (!state.pet || state.sleeping) return null
   var p = PETS[state.pet.type]
+  // Like a full pet that will not eat: a pet that already feels loved earns no
+  // XP from more strokes, so petting cannot be farmed.
+  var needed = state.stats.affection < NEEDS_CARE
   gain(state, "affection", amount * (p.decay.affection > 1.1 ? 1.2 : 1))
   gain(state, "happiness", amount * 0.5)
   state.counters.pets += 1
-  return { kind: "pet" }
+  return { kind: "pet", needed: needed }
 }
 
 // `score` is 0..N from the minigame; coins and happiness scale with it.
@@ -394,9 +399,10 @@ function clean(state, count) {
 
 function bathe(state) {
   // The sparkle wash button: always works, even with no mess to remove.
+  var grubby = state.stats.cleanliness < NEEDS_CARE
   var res = clean(state, state.messes)
   gain(state, "cleanliness", 30)
-  if (res.removed === 0) { gain(state, "happiness", 2); state.counters.cleans += 1; addXp(state, 2) }
+  if (res.removed === 0) { gain(state, "happiness", 2); state.counters.cleans += 1; if (grubby) addXp(state, 2) }
   return { kind: "clean", removed: res.removed }
 }
 

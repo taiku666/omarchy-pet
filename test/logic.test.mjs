@@ -280,3 +280,21 @@ test("streak continues across a short (DST) day", () => {
   L.touchStreak(s, d2);
   assert.equal(s.streak.days, 2);
 });
+
+test("stroking and washing a pet that needs nothing earns no XP, so they cannot be farmed", () => {
+  const s = fresh();
+  s.stats.affection = 100; s.stats.cleanliness = 100; s.messes = 0;
+  const xp = s.xp, lv = s.level;
+  for (let i = 0; i < 200; i++) { const r = L.pet(s, 3); assert.equal(r.needed, false); L.bathe(s); }
+  assert.equal(s.xp, xp);
+  assert.equal(s.level, lv);
+});
+
+test("a pet that needs affection or a wash still earns XP for it", () => {
+  const s = fresh();
+  s.stats.affection = 30; s.stats.cleanliness = 30; s.messes = 0;
+  assert.equal(L.pet(s, 3).needed, true);
+  const xp = s.xp;
+  L.bathe(s);
+  assert.equal(s.xp, xp + 2);
+});
