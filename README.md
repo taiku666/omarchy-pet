@@ -47,6 +47,10 @@ Sound uses `pw-play` (PipeWire), which Omarchy ships.
 | 🐉 Baby Dragon | Tiny and fiery. Puffs fire, flaps its wings. Loves peppers. |
 | 🐧 Penguin | Social waddler. Slides on its belly. Stays clean. |
 
+On the bar the pets turn to profile while they walk and move on four legs (the penguin
+waddles on two), each with its own gait; the steps follow the ground they cover and kick
+up a little dust.
+
 Each pet has its own look, idle behaviours, stroke reaction, voice, favourite food,
 and four growth stages (the adult form wears something extra).
 

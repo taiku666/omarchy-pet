@@ -11,7 +11,9 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import qs.Commons
 import "Sprites.js" as Sprites
+import "SideSprites.js" as Side
 import "Anim.js" as Anim
 import "Logic.js" as Logic
 
@@ -46,7 +48,7 @@ Item {
     x: 0, face: 1, beh: null, later: [], pose: null,
     blinkAt: 0, blinkUntil: 0, particles: [], strokeUntil: 0, strokeDist: 0,
     lastFrame: 0, t0: Date.now(), seed: Date.now() % 2147483647, lastZ: 0,
-    react: null, moving: false, lastSpoke: 0, pressX: 0, dragged: false, lastPurr: 0
+    react: null, moving: false, mix: 0, gait: 0, speed: 0, amt: 0, kind: "walk", lastSpoke: 0, pressX: 0, dragged: false, lastPurr: 0
   })
 
   function rnd() { wd.seed = (wd.seed * 16807) % 2147483647; return wd.seed / 2147483647 }
@@ -164,13 +166,19 @@ Item {
     }
     var dur = Anim.durationOf(name, rnd)
     // A long crossing takes longer, so it stays a walk and not a dash.
-    if (b.move) dur = Math.max(dur, Math.abs(target - wd.x) / 140 * 1000)
+    if (b.move) dur = Math.max(dur, Math.abs(target - wd.x) / (b.move === 1 ? 100 : 140) * 1000)
     wd.beh = { name: name, start: now(), dur: dur, startX: wd.x, targetX: target }
   }
 
   function burstHeart(x, y) {
     if (wd.particles.length > 40) wd.particles.shift()
     wd.particles.push({ type: "heart", x: x + (rnd() - 0.5) * 8, y: y, vx: (rnd() - 0.5) * 8, vy: -14 - rnd() * 10, life: 1.0, age: 0 })
+  }
+
+  // A small puff behind the feet at a footfall.
+  function addDust() {
+    if (wd.particles.length > 40) wd.particles.shift()
+    wd.particles.push({ type: "dust", x: wd.x - wd.face * spriteW() * 0.3, y: win.height - 3, vx: -wd.face * (6 + rnd() * 8), vy: -(4 + rnd() * 6), life: 0.35 + rnd() * 0.15, age: 0 })
   }
 
   function strokeOnce(x) {
@@ -197,6 +205,7 @@ Item {
 
     if (wd.x === 0) wd.x = restSpot(Math.min(barLength - half, barLength * 0.72))
     wd.x = Math.max(half, Math.min(barLength - half, wd.x))
+    var x0 = wd.x
 
     var pose = null
     var sleeping = hatched && st.sleeping
@@ -246,6 +255,29 @@ Item {
       pose.dy *= 0.4
       pose.dx = 0
       wd.pose = pose
+    }
+
+    // Walking turns the pet to profile, four legs, with steps locked to the
+    // ground it covers. Standing, sleeping and reacting stay front-on.
+    var dxm = Math.abs(wd.x - x0)
+    var bn = wd.beh && !sleeping ? wd.beh.name : "walk"
+    var wantSide = hatched && wd.moving && !wd.react && Side.showsSide(petType, bn)
+    wd.speed += ((dt > 0 ? dxm / dt : 0) - wd.speed) * Math.min(1, dt * 10)
+    var turnMs = Style.duration(130)
+    var mstep = turnMs > 0 ? dt * 1000 / turnMs : 1
+    wd.mix = wantSide ? Math.min(1, wd.mix + mstep) : Math.max(0, wd.mix - mstep)
+    if (wd.mix > 0 && hatched && pose) {
+      var kind = Side.SIDE[petType] ? Side.SIDE[petType].gait : "walk"
+      var S0 = art * stageScale()
+      var ph0 = wd.gait
+      if (wantSide) wd.gait += dxm / Side.strideLength(kind, S0)
+      var amt = Side.gaitAmount(wd.speed)
+      pose.dy = Side.walkBob(kind, wd.gait, amt, S0)
+      pose.rot = Side.leanFor(wd.speed)
+      pose.sx = 1; pose.sy = 1
+      var beats = (kind === "hop" || kind === "bound") ? 1 : 2
+      if (wantSide && amt > 0.4 && Math.floor(wd.gait * beats) !== Math.floor(ph0 * beats)) addDust()
+      wd.amt = amt; wd.kind = kind
     }
 
     for (i = wd.particles.length - 1; i >= 0; i--) {
@@ -344,7 +376,7 @@ Item {
     var pose = wd.pose
     var footY = h - 2
     var S = art * stageScale()
-    var shadowW = 9 * S
+    var shadowW = 9 * S * (1 + 0.25 * (wd.mix || 0))
 
     ctx.fillStyle = "rgba(0,0,0,0.22)"
     ctx.beginPath(); ctx.ellipse(wd.x - shadowW, footY - 1.5, shadowW * 2, 3); ctx.fill()
@@ -362,24 +394,37 @@ Item {
       if (eyes === "open" && t < wd.blinkUntil) eyes = "closed"
       var mouth = pose.mouth || (mood === "sad" ? "sad" : mood === "hungry" ? "oh" : mood === "sleepy" ? "flat" : "smile")
       var blush = pose.blush || (st.stats.affection > 80 ? 0.35 : 0)
+      var m = wd.mix || 0
+      var stage = Logic.stageForLevel(st.level)
       ctx.save()
       ctx.translate(wd.x, footY + pose.dy)
-      ctx.rotate(pose.rot)
-      ctx.scale(wd.face * pose.sx, pose.sy)
-      Sprites.drawPet(ctx, {
-        pal: th.petPalette(petType), type: petType, S: S, stage: Logic.stageForLevel(st.level),
-        tailPhase: t / 1000 * (pose.tailAmp > 2.5 ? 12 : 4), tailAmp: pose.tailAmp * 0.6, wing: pose.wing,
-        gait: pose.gait, gaitAmt: pose.gaitAmt, gaitSync: pose.gaitSync,
-        eyes: eyes, lookX: pose.lookX, lookY: pose.lookY, tear: 0, mouth: mouth, blush: blush,
-        hat: st.equipped.hat, hatBob: 0
-      })
+      ctx.rotate(pose.rot * (m > 0 ? wd.face : 1))
+      ctx.scale(wd.face * pose.sx * Side.turnScale(m), pose.sy)
+      if (m >= 0.5) {
+        Side.drawSidePet(ctx, {
+          lib: Sprites, pal: th.petPalette(petType), type: petType, S: S, stage: stage,
+          gait: wd.gait, gaitAmt: wd.amt, gaitType: wd.kind,
+          eyes: eyes, lookX: 1, lookY: 0, mouth: mouth, blush: blush,
+          tailPhase: t / 1000 * 6, tailAmp: pose.tailAmp > 2.5 ? 16 : 9, wing: (pose.wing || 0) + 0.3 * Math.sin(t / 160),
+          hat: st.equipped.hat
+        })
+      } else {
+        Sprites.drawPet(ctx, {
+          pal: th.petPalette(petType), type: petType, S: S, stage: stage,
+          tailPhase: t / 1000 * (pose.tailAmp > 2.5 ? 12 : 4), tailAmp: pose.tailAmp * 0.6, wing: pose.wing,
+          gait: pose.gait, gaitAmt: pose.gaitAmt, gaitSync: pose.gaitSync,
+          eyes: eyes, lookX: pose.lookX, lookY: pose.lookY, tear: 0, mouth: mouth, blush: blush,
+          hat: st.equipped.hat, hatBob: 0
+        })
+      }
       ctx.restore()
     }
 
     for (var i = 0; i < wd.particles.length; i++) {
       var p = wd.particles[i]
       ctx.globalAlpha = Math.max(0, 1 - p.age / p.life)
-      if (p.type === "heart") Sprites.drawHeart(ctx, p.x, p.y, 1, String(th.love))
+      if (p.type === "dust") { ctx.fillStyle = String(th.text); ctx.fillRect(Math.round(p.x), Math.round(p.y), 2, 2) }
+      else if (p.type === "heart") Sprites.drawHeart(ctx, p.x, p.y, 1, String(th.love))
       else if (p.type === "zzz") { ctx.fillStyle = String(th.text); ctx.font = "bold " + Math.round(h * 0.34) + "px '" + ctl.th.font + "'"; ctx.textAlign = "center"; ctx.fillText("z", p.x, p.y) }
       ctx.globalAlpha = 1
     }

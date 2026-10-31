@@ -218,7 +218,7 @@ Item {
     if (!hatched) {
       wd.pose = null
     } else if (wd.game) {
-      pose = updateGame(t, dt, ts)
+      pose = updateGame(t, dt, ts); wd.pose = pose
     } else {
       // behaviour selection
       if (wd.react && t > wd.react.start + wd.react.dur) wd.react = null
@@ -420,7 +420,12 @@ Item {
         } else { g.streak = 0; g.trip = t; ctl.sfx("nope") }
       }
       pose = Anim.composePose("idle", 0, ts, "playful")
-      pose.dy = hopT < 1 ? -Math.sin(Math.PI * hopT) * 26 : 0
+      // Spring hop: crouch, launch with a stretch, land with a damped squash.
+      var hH = 9 * sc, hsx = 1, hsy = 1, hdy = 0
+      if (hopT < 0.15) { var kc = Math.sin(hopT / 0.15 * Math.PI / 2); hsy = 1 - 0.22 * kc; hsx = 1 + 0.14 * kc; hdy = 0.03 * hH * kc }
+      else if (hopT < 0.85) { var ka = Math.sin((hopT - 0.15) / 0.7 * Math.PI); hdy = -ka * hH; hsy = 1 + 0.14 * ka; hsx = 1 - 0.07 * ka }
+      else if (hopT < 1.45) { var ku = (hopT - 0.85) / 0.6; var kd = (1 - ku) * Math.cos(ku * Math.PI * 2.5); hsy = 1 - 0.2 * kd; hsx = 1 + 0.12 * kd; hdy = 0.02 * hH * Math.max(0, kd) }
+      pose.dy = hdy; pose.sx = (pose.sx || 1) * hsx; pose.sy = (pose.sy || 1) * hsy
       pose.eyes = "open"; pose.mouth = hopT < 1 ? "open" : "smile"; pose.tailAmp = 2.5
       if (g.trip && t - g.trip < 400) { pose.rot = Math.sin((t - g.trip) / 40) * 0.08; pose.eyes = "closed" }
     } else if (g.id === "yarn") {

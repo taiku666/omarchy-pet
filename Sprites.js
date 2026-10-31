@@ -201,6 +201,8 @@ var EYE = "#2b2433"
 // The palette of the pet being drawn. drawPet sets it so every helper below
 // paints in the same (theme-derived) colours without threading it through.
 var CUR = null
+// Lets other sprite files (SideSprites.js) paint with the same palette.
+function usePalette(p) { CUR = p }
 function E() { return (CUR && CUR.e) || EYE }
 function HP() { return (CUR && CUR.hat) || HAT_PAL }
 function themed(k, fallback) { return (CUR && CUR[k]) || fallback }
