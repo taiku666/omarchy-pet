@@ -93,7 +93,32 @@ Item {
     repeat: true
     running: bp.hatched || (ctl && ctl.loaded)
     triggeredOnStart: true
-    onTriggered: if (!saverCheck.running) saverCheck.running = true
+    onTriggered: {
+      if (!saverCheck.running) saverCheck.running = true
+      if (!coverCheck.running) coverCheck.running = true
+    }
+  }
+
+  // The lock screen and fullscreen windows would hide the bar but not this
+  // overlay, which sits above them. Same lock test as Omarchy's own scripts (an
+  // ext-session-lock shows up as LOCK in a monitor's solitaryBlockedBy); a
+  // monitor is covered when its active workspace has a fullscreen window.
+  property bool locked: false
+  property var fullscreenOn: []
+  readonly property bool covered: locked || (petScreen !== null && fullscreenOn.indexOf(String(petScreen.name)) >= 0)
+  function takeCover(text) {
+    var o
+    try { o = JSON.parse(text) } catch (e) { return }
+    locked = o.locked === true
+    fullscreenOn = o.fullscreen || []
+  }
+  Process {
+    id: coverCheck
+    command: ["bash", "-c", "m=$(hyprctl -j monitors) && w=$(hyprctl -j workspaces) && jq -nc --argjson m \"$m\" --argjson w \"$w\" '"
+      + "($w | map(select(.hasfullscreen) | .id)) as $f | "
+      + "{ locked: ($m | any(.[]; (.solitaryBlockedBy // []) | index(\"LOCK\"))), "
+      + "fullscreen: ($m | map(select(.activeWorkspace.id as $i | $f | index($i)) | .name)) }'"]
+    stdout: StdioCollector { onStreamFinished: bp.takeCover(text) }
   }
 
   Process {
@@ -311,7 +336,7 @@ Item {
     id: win
 
     screen: bp.petScreen
-    visible: !bp.vertical && bp.petScreen !== null && !bp.barHidden && !bp.screensaver && ctl && ctl.loaded && !ctl.hidden && !ctl.popupOpen
+    visible: !bp.vertical && bp.petScreen !== null && !bp.barHidden && !bp.screensaver && !bp.covered && ctl && ctl.loaded && !ctl.hidden && !ctl.popupOpen
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "omarchy-pet-bar"
