@@ -61,9 +61,13 @@ Item {
     onLoadFailed: root.restore("")
   }
 
+  FileView { id: backup; path: root.statePath + ".bak"; atomicWrites: true; printErrors: false }
+
   function restore(raw) {
     var saved = null
     try { saved = raw ? JSON.parse(raw) : null } catch (e) { saved = null }
+    // A damaged file is about to be replaced: keep a copy for recovery.
+    if (raw && saved === null) backup.setText(raw)
     var now = Date.now()
     var s = Logic.mergeState(saved, now)
     var away = Logic.applyAway(s, now)

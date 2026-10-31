@@ -92,7 +92,7 @@ var FOODS = {
   pepper: { label: "Pepper", emoji: "🌶️", hunger: 16, happiness: 6, cost: 5, favoriteOf: "dragon" },
   shrimp: { label: "Shrimp", emoji: "🦐", hunger: 18, happiness: 5,  cost: 5, favoriteOf: "penguin" }
 }
-// Everything but the pet's own favourite can be bought for others too.
+// Every food is sold in the shop, favourites included.
 var FOOD_ORDER = ["apple", "cookie", "cake", "fish", "bone", "carrot", "fly", "bamboo", "berry", "pepper", "shrimp"]
 // Food is bought by the portion and used up when fed. A cost of 0 means the
 // food is unlimited, so a pet can never be left with nothing to eat.
@@ -207,12 +207,35 @@ function mergeState(saved, now) {
     }
   }
   merge(base, saved)
+  // Any section a hostile or damaged save replaced with the wrong type falls
+  // back to its default before the values are checked.
+  var def = defaultState(now)
+  ;["stats", "counters", "unlocked", "pantry", "equipped", "milestones", "streak", "settings", "ui"].forEach(function (k) {
+    if (!base[k] || typeof base[k] !== "object" || Array.isArray(base[k])) base[k] = def[k]
+  })
+  ;["hats", "toys"].forEach(function (k) {
+    var list = Array.isArray(base.unlocked[k]) ? base.unlocked[k] : []
+    var table = k === "hats" ? HATS : TOYS
+    base.unlocked[k] = list.filter(function (id, i) { return table[id] && list.indexOf(id) === i })
+    def.unlocked[k].forEach(function (id) { if (base.unlocked[k].indexOf(id) === -1) base.unlocked[k].push(id) })
+  })
   // Older saves unlocked foods for good; they now start with a few portions each.
   if (saved && typeof saved === "object" && !saved.pantry && saved.unlocked && Array.isArray(saved.unlocked.foods)) {
     saved.unlocked.foods.forEach(function (id) { if (FOODS[id] && FOODS[id].cost > 0) base.pantry[id] = STARTER_PORTIONS })
   }
   if (base.pet && !PETS[base.pet.type]) base.pet = null
   STAT_KEYS.forEach(function (k) { base.stats[k] = clamp(Number(base.stats[k]) || 0, 0, 100) })
+  base.xp = Math.max(0, Number(base.xp) || 0)
+  base.messes = clamp(Math.floor(Number(base.messes) || 0), 0, MAX_MESSES)
+  base.messClock = Math.max(0, Number(base.messClock) || 0)
+  base.sleeping = base.sleeping === true
+  base.streak.days = Math.max(0, Math.floor(Number(base.streak.days) || 0))
+  base.streak.day = typeof base.streak.day === "string" ? base.streak.day : ""
+  for (var food in base.pantry) {
+    if (!FOODS[food] || FOODS[food].cost === 0) delete base.pantry[food]
+    else base.pantry[food] = clamp(Math.floor(Number(base.pantry[food]) || 0), 0, 9999)
+  }
+  for (var c in base.counters) base.counters[c] = Math.max(0, Math.floor(Number(base.counters[c]) || 0))
   base.level = Math.max(1, Math.floor(Number(base.level) || 1))
   base.coins = Math.max(0, Math.floor(Number(base.coins) || 0))
   if (base.settings && typeof base.settings === "object") base.settings.volume = clamp(Number(base.settings.volume) || 0, 0, 100)
@@ -287,7 +310,9 @@ function dayKey(now) {
 function touchStreak(state, now) {
   var today = dayKey(now)
   if (state.streak.day === today) return []
-  var yesterday = dayKey(now - 24 * 3600 * 1000)
+  var prev = new Date(now)
+  prev.setDate(prev.getDate() - 1)           // calendar day, not 24 h (DST)
+  var yesterday = dayKey(prev.getTime())
   state.streak.days = state.streak.day === yesterday ? state.streak.days + 1 : 1
   state.streak.day = today
   var bonus = Math.min(5 + state.streak.days * 2, 25)

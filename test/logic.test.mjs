@@ -253,3 +253,30 @@ test("toys unlock at spread-out levels with rising prices", () => {
     assert.ok(costs[i] > costs[i - 1], `toy ${i} should cost more than the previous one`);
   }
 });
+
+test("mergeState repairs wrongly typed or absurd saved values", () => {
+  const s = L.mergeState({
+    pet: { type: "cat", name: "x", hatched: true }, messes: 1e9, xp: "abc", stats: 5, counters: 7,
+    unlocked: { hats: "none", toys: null }, pantry: { fish: -5, apple: 9, bogus: 3 }, streak: { days: "x", day: 5 }
+  }, NOW);
+  assert.equal(s.messes, L.MAX_MESSES);
+  assert.equal(s.xp, 0);
+  assert.equal(typeof s.stats.hunger, "number");
+  assert.deepEqual(Array.from(s.unlocked.hats), ["none"]);
+  assert.deepEqual(Array.from(s.unlocked.toys), ["ball"]);
+  assert.equal(s.pantry.fish, 0);
+  assert.equal(s.pantry.apple, undefined);
+  assert.equal(s.pantry.bogus, undefined);
+  assert.equal(s.streak.days, 0);
+  assert.equal(s.streak.day, "");
+  assert.equal(L.buy(s, "hats", "bow"), "ok");
+});
+
+test("streak continues across a short (DST) day", () => {
+  const s = fresh();
+  const d1 = new Date(2026, 2, 28, 12).getTime();
+  L.touchStreak(s, d1);
+  const d2 = new Date(2026, 2, 29, 0, 30).getTime();
+  L.touchStreak(s, d2);
+  assert.equal(s.streak.days, 2);
+});

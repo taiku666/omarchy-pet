@@ -61,7 +61,7 @@ and four growth stages (the adult form wears something extra).
 | Pet | Stroke mode: strokes count double |
 | Sleep / Wake | A nap restores energy; sleeping pets can't be fed or played with |
 | Clean | Wash the home, or click a single mess to remove it |
-| Shop | Spend coins on hats and toys, and buy food by the portion |
+| Shop | Spend coins on hats and toys (a new hat is worn right away), and buy food by the portion |
 | ⚙ | Sound, volume, rename, goals, reset |
 
 While the card is open the pet stays inside it, in front of your desktop wallpaper.
@@ -77,7 +77,7 @@ Hunger, happiness, energy, cleanliness and affection change gradually. A neglect
 pet gets hungry, tired or sad, shown by its face and a small thought bubble, but
 needs never fall to zero and a happy pet is always one cuddle away. Time you spend
 away counts at a gentler rate, so coming back after a weekend is a hello rather than
-a rescue.
+a rescue (up to 24 hours count, at 30% speed).
 
 ### Progression
 
@@ -119,7 +119,7 @@ from the bar until you `show` it again).
 - **Local files only.** It writes `~/.local/share/omarchy-pet/state.json` (atomic writes) and reads
   that file, the theme's `colors.toml` and the current wallpaper. The wallpaper is decoded at a capped size.
 - **Untrusted saves.** `state.json` is parsed defensively: prototype-polluting keys are ignored and
-  values such as stats, level, coins and volume are clamped. Covered by `test/logic.test.mjs`.
+  wrongly typed sections fall back to defaults and values such as stats, level, coins, messes, pantry and volume are clamped. A save that cannot be parsed is kept as `state.json.bak`. Covered by `test/logic.test.mjs`.
 
 ## Development
 
