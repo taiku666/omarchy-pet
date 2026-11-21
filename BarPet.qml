@@ -297,8 +297,9 @@ Item {
       var ph0 = wd.gait
       if (wantSide) wd.gait += dxm / Side.strideLength(kind, S0)
       var amt = Side.gaitAmount(wd.speed)
-      pose.dy = Side.walkBob(kind, wd.gait, amt, S0)
-      pose.rot = Side.leanFor(wd.speed)
+      // The sprite bobs its own body and keeps the feet on the ground.
+      pose.dy = 0
+      pose.rot = Side.leanFor(wd.speed) + Side.waddleRock(kind, wd.gait, amt)
       pose.sx = 1; pose.sy = 1
       var beats = (kind === "hop" || kind === "bound") ? 1 : 2
       if (wantSide && amt > 0.4 && Math.floor(wd.gait * beats) !== Math.floor(ph0 * beats)) addDust()

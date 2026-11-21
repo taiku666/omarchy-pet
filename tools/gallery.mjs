@@ -8,7 +8,7 @@ const root = new URL("../", import.meta.url);
 const ctx = vm.createContext({});
 for (const f of ["Sprites.js", "Logic.js", "Palette.js"]) vm.runInContext(readFileSync(new URL(f, root), "utf8"), ctx);
 
-const THEMES = process.argv.length > 3 ? process.argv.slice(3) : ["osaka-jade", "tokyo-night", "gruvbox", "catppuccin-latte"];
+const THEMES = process.argv.length > 3 ? process.argv.slice(3) : ["tokyo-night", "gruvbox", "kanagawa", "catppuccin-latte"];
 const THEME_DIRS = [`${process.env.HOME}/.config/omarchy/themes`, "/usr/share/omarchy/themes"];
 
 function loadTheme(name) {
@@ -53,7 +53,7 @@ THEMES.forEach((name, row) => {
     const g = recorder();
     g.origin(i * CELL_W + CELL_W / 2, y0 + LABEL + CELL_H - 10);
     g.fillStyle = "rgba(0,0,0,0.22)";
-    ctx.drawPet(g, { type: id, S, stage: 3, pal: ctx.petPalette(id, env), eyes: "open", mouth: "smile", tailAmp: 0, wing: 0, blush: 0, hat: "none" });
+    ctx.drawPet(g, { type: id, S, stage: 2, pal: ctx.petPalette(id, env), eyes: "open", mouth: "smile", tailAmp: 1, tailPhase: 0.8, wing: 0, blush: 0.4, hat: "none" });
     body += g.svg();
   });
 });

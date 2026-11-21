@@ -3,8 +3,13 @@
 // each pet is only 18 short strings. Faces, tails, wings and hats are drawn on
 // top in code so they can animate.
 //
-// Palette keys: o outline, b body, l light belly, d shade, p pink, a accent,
-// w white, k dark. A '.' is transparent.
+// The pets are chibi shaped: a big round head on a small body with paws. Light
+// comes from the top left: `runsFor` gives every body pixel on a top or left
+// edge the highlight colour and every one on a bottom or right edge the shade,
+// so the hand-typed halves only carry the markings.
+//
+// Palette keys: o outline, b body, h highlight, l light belly, d shade, p pink,
+// a accent, w white, k dark. A '.' is transparent.
 
 var W = 20
 var H = 18
@@ -12,188 +17,194 @@ var H = 18
 var HALVES = {
   cat: [
     "..........",
+    ".o........",
     ".oo.......",
     ".obo......",
     ".obpo.....",
     ".obppooooo",
-    ".obbbdbbdb",
-    "obbbbbbbbb",
-    "obbbbbbbbb",
+    ".obbbbbdbd",
     "obbbbbbbbb",
     "obbbbbbbbb",
     "obbbbbbbbb",
     "obbbbbbbbb",
     ".obbbbbbbb",
-    "obbbllllll",
-    "obbbllllll",
-    "obbbllllll",
-    ".obbbbbbbo",
-    ".ooooooooo"
+    "..oobbbbbb",
+    "...obbllll",
+    "...obbllll",
+    "...obbllll",
+    "...obwwwob",
+    "...ooooooo"
   ],
   dog: [
     "..........",
     "..........",
-    "...ooooooo",
+    ".....ooooo",
+    "...oobbbbb",
     "..obbbbbbb",
-    ".obbbbbbbb",
-    "oddbbbbbbb",
-    "oddbbbbbbb",
-    "oddbbbbbbb",
-    "oddbbbbbbb",
-    ".odbbbllll",
-    ".obbbbllll",
-    ".obbbbllll",
-    "..obbbbbbb",
-    ".obbbbllll",
-    "obbbbbllll",
-    "obbbbbllll",
-    ".obbbbbbbo",
-    ".ooooooooo"
+    ".oddobbbbb",
+    "odddobbbbb",
+    "odddobbbbb",
+    "odddobbbbb",
+    "odddobbbll",
+    ".oddobblll",
+    "..oo.obbll",
+    ".....ooooo",
+    "....obllll",
+    "....obllll",
+    "....obllll",
+    "....obbbob",
+    "....oooooo"
   ],
   bunny: [
-    "...ooo....",
-    "..obbbo...",
-    "..obpbo...",
-    "..obpbo...",
-    "..obpbo...",
-    "..obpbo...",
-    "..obbbbooo",
+    "..ooo.....",
+    ".obbbo....",
+    ".obpbo....",
+    ".obpbo....",
+    ".obpbo....",
+    ".obpbo....",
+    "..obbooooo",
     ".obbbbbbbb",
     "obbbbbbbbb",
     "obbbbbbbbb",
     "obbbbbbbbb",
     "obbbbbbbbb",
-    "obbbbbbbbb",
-    ".obbbbllll",
-    ".obbblllll",
-    ".obbblllll",
-    "..obbbbbbo",
-    "..oooooooo"
+    ".obbbbbbbb",
+    "..oobbllll",
+    "...obbllll",
+    "...obbllll",
+    "...oblllob",
+    "...ooooooo"
   ],
   frog: [
     "..........",
     "..oooo....",
     ".obbbbo...",
     ".obbbbbooo",
+    "obbbbbbbbb",
+    "obbbbbbbbb",
+    "obbbbbbbbb",
+    "obbbbbbbbb",
+    "obbbbbbbbb",
+    "obbbbbbbbb",
     ".obbbbbbbb",
-    "obbbbbbbbb",
-    "obbbbbbbbb",
-    "obbbbbbbbb",
-    "obbbbbbbbb",
-    "obbbbbbbbb",
-    "obbbbbbbbb",
-    "obbbbbbbbb",
-    "obblllllll",
-    "obblllllll",
-    "obblllllll",
+    "..obllllll",
+    "..obllllll",
     ".obbllllll",
-    "oobbbbbbbb",
-    ".ooooooooo"
+    "obbdblllll",
+    "obddbbllll",
+    "obbbbobbbb",
+    ".oooo.oooo"
   ],
   panda: [
     "..........",
     ".ooo......",
     "okkko.....",
     "okkkoooooo",
-    "okkkbbbbbb",
+    ".okbbbbbbb",
     ".obbbbbbbb",
     "obbbbbbbbb",
-    "obbkkkkbbb",
-    "obbkkkkbbb",
-    "obbbbbbbbb",
-    "obbbbbbbbb",
+    "obbkkkbbbb",
+    "obkkkkbbbb",
+    "obkkkkbbbb",
+    "obbkkbbbbb",
     ".obbbbbbbb",
-    "okkkbbbbbb",
-    "okkkbbbbbb",
-    "okkkbbbbbb",
-    ".okkkbbbbb",
-    ".okkkbbbbo",
-    ".ooooooooo"
+    "..ookkbbbb",
+    "..okkkbbbb",
+    "..okkkbbbb",
+    "...okkbbbb",
+    "...okkkokk",
+    "...ooooooo"
   ],
   fox: [
+    "..........",
     ".o........",
     ".oo.......",
-    ".odo......",
-    ".obbo.....",
-    ".obbbooooo",
+    ".oko......",
+    ".obko.....",
+    ".obbkooooo",
     ".obbbbbbbb",
     "obbbbbbbbb",
     "obbbbbbbbb",
     "obbbbbbbbb",
-    "obbwwwwwww",
-    ".obwwwwwww",
-    ".obbwwwwww",
-    ".obbbbwwww",
-    "obbbbwwwww",
-    "obbbbwwwww",
-    "obbbbwwwww",
-    ".obbbbbbbo",
-    ".ooooooooo"
+    "owwwbbbbbb",
+    ".owwwwwbbw",
+    "..oowwwwww",
+    "...obbwwww",
+    "...obbwwww",
+    "...obbwwww",
+    "...okkkokk",
+    "...ooooooo"
   ],
   dragon: [
+    "..........",
     "..a.......",
-    ".oao....aa",
-    ".obboooooo",
-    ".obbbbbbbb",
-    "obbbbbbbbb",
-    "obbbbbbbbb",
-    "obbbbbbbbb",
-    "obbbbbbbbb",
-    "obbbbbbbbb",
-    "obbbbbbbbb",
-    ".obbbbbbbb",
-    ".oblllllll",
-    "obllllllll",
-    "obllllllll",
-    "obllllllll",
-    ".oblllllll",
+    ".aao......",
+    ".oaoooooo.",
     ".obbbbbbbo",
-    ".ooooooooo"
+    ".obbbbbbbb",
+    "obbbbbbbbb",
+    "obbbbbbbbb",
+    "obbbbbbbbb",
+    "obbbbbbbbb",
+    "obbbbbbbbb",
+    ".obbbbbbbb",
+    "..oobbllll",
+    "...obbllll",
+    "...obbllll",
+    "...obbllll",
+    "...obdddod",
+    "...ooooooo"
   ],
   penguin: [
-    "...ooooooo",
-    "..okkkkkkk",
+    "....oooooo",
+    "..ookkkkkk",
     ".okkkkkkkk",
-    "okkkkkkkkk",
-    "okkkkkkkkk",
-    "okkkkkkkkk",
-    "okkwwwwwww",
-    "okwwwwwwww",
-    "okwwwwwwww",
+    ".okkkkkkkk",
+    "okkkwwwkkk",
+    "okkwwwwwkw",
     "okkwwwwwww",
     "okkwwwwwww",
     "okkwwwwwww",
     "okkwwwwwww",
-    "okkwwwwwww",
-    ".okwwwwwww",
     ".okkwwwwww",
-    ".okkwwwwwo",
-    ".oaaaaa..."
+    "..okwwwwww",
+    "..okwwwwww",
+    "..okwwwwww",
+    "..okwwwwww",
+    "...okwwwww",
+    "...oaaaooo",
+    "...ooooo.."
   ]
 }
 
-var PALETTES = {
-  cat:     { o: "#8a4b2a", b: "#f2a65a", l: "#ffe6bf", d: "#d9823b", p: "#ffb3c1", a: "#d9823b", w: "#fff6e8", k: "#4a2c1a" },
-  dog:     { o: "#6b4429", b: "#d9a066", l: "#f9e4c4", d: "#9c6b3f", p: "#ffb3c1", a: "#9c6b3f", w: "#fff6e8", k: "#3d2616" },
-  bunny:   { o: "#a58b9b", b: "#fdf6f0", l: "#ffffff", d: "#e3d3dc", p: "#ffb8cc", a: "#ffb8cc", w: "#ffffff", k: "#6a5560" },
-  frog:    { o: "#3f7d4e", b: "#8fd694", l: "#dff7cf", d: "#5fb06b", p: "#ffb3b3", a: "#ffd966", w: "#ffffff", k: "#2e5a39" },
-  panda:   { o: "#3a3a44", b: "#f7f4ee", l: "#ffffff", d: "#cfcac2", p: "#ffb3c1", a: "#7fc97f", w: "#ffffff", k: "#3a3a46" },
-  fox:     { o: "#9a4a1f", b: "#f58a3f", l: "#fff2e0", d: "#6b2f14", p: "#ffb3c1", a: "#6b2f14", w: "#fff4e6", k: "#4a2210" },
-  dragon:  { o: "#2e7a73", b: "#7fd6c4", l: "#fff0c2", d: "#4fb3a2", p: "#ffb3b3", a: "#ff9e7a", w: "#ffffff", k: "#1f5650" },
-  penguin: { o: "#262b42", b: "#3b4263", l: "#fbfbff", d: "#2c3250", p: "#ffb3c1", a: "#ffb347", w: "#fbfbff", k: "#3b4263" }
+// Markings that break the mirror: [x, y, w, h, key], painted over the full
+// grid before it is lit. The cat has a tabby stripe on each cheek.
+var MARKS = {
+  cat: [[3, 7, 1, 2, "d"], [16, 7, 1, 2, "d"]]
 }
 
-// Face anchors in grid pixels: eyes are 2x2 at (x, y), the mouth is centred on
+var PALETTES = {
+  cat:     { o: "#7a3f22", b: "#f2a65a", h: "#ffc887", s: "#eeb984", l: "#ffe6bf", d: "#d9823b", p: "#ffb3c1", a: "#d9823b", w: "#fff6e8", k: "#4a2c1a" },
+  dog:     { o: "#5e3a22", b: "#d9a066", h: "#efc08c", s: "#cfae88", l: "#f9e4c4", d: "#9c6b3f", p: "#ffb3c1", a: "#9c6b3f", w: "#fff6e8", k: "#3d2616" },
+  bunny:   { o: "#8c7383", b: "#f5ece6", h: "#ffffff", s: "#eee5ea", l: "#ffffff", d: "#d9c6d0", p: "#ffb8cc", a: "#ffb8cc", w: "#ffffff", k: "#6a5560" },
+  frog:    { o: "#2f6b3e", b: "#7fcf87", h: "#b4ecab", s: "#a1d39f", l: "#dff7cf", d: "#55a865", p: "#ffb3b3", a: "#ffd966", w: "#ffffff", k: "#2e5a39" },
+  panda:   { o: "#2c2c36", b: "#f4f1ea", h: "#ffffff", s: "#e9e7e4", l: "#ffffff", d: "#cfcac2", p: "#ffb3c1", a: "#7fc97f", w: "#ffffff", k: "#3a3a46" },
+  fox:     { o: "#7f3a17", b: "#f58a3f", h: "#ffb070", s: "#e4b08e", l: "#fff2e0", d: "#c4602a", p: "#ffb3c1", a: "#6b2f14", w: "#fff4e6", k: "#4a2210" },
+  dragon:  { o: "#25665f", b: "#7fd6c4", h: "#b5f0e2", s: "#b0d5b4", l: "#fff0c2", d: "#4fb3a2", p: "#ffb3b3", a: "#ff9e7a", w: "#ffffff", k: "#1f5650" },
+  penguin: { o: "#1c2036", b: "#3b4263", h: "#58608a", s: "#9ea1b0", l: "#fbfbff", d: "#2c3250", p: "#ffb3c1", a: "#ffb347", w: "#fbfbff", k: "#3b4263" }
+}
+
+// Face anchors in grid pixels: eyes are 2x3 at (x, y), the mouth is centred on
 // (mx, my), the nose sits above it. Head metrics place hats and headphones.
 var FACES = {
-  cat:     { eyes: [5, 7],  eyeR: [13, 7],  mouth: [9, 10], nose: { y: 9,  c: "#ff8fa8" }, cheeks: [3, 9],  hat: 4, head: { hw: 9, cupY: 8 }, hatDx: 0 },
-  dog:     { eyes: [5, 6],  eyeR: [13, 6],  mouth: [9, 11], nose: { y: 9,  c: "#2b2433", w: 3 }, cheeks: [3, 9],  hat: 3, head: { hw: 9, cupY: 7 }, hatDx: 0 },
-  bunny:   { eyes: [5, 9],  eyeR: [13, 9],  mouth: [9, 12], nose: { y: 11, c: "#ff8fa8" }, cheeks: [3, 11], hat: 6, head: { hw: 9, cupY: 10 }, hatDx: 0 },
-  frog:    { eyes: [3, 2],  eyeR: [15, 2],  mouth: [9, 9],  nose: null,                        cheeks: [2, 8],  hat: 3, head: { hw: 9, cupY: 7 }, hatDx: 0, wideMouth: true },
-  panda:   { eyes: [5, 7],  eyeR: [13, 7],  mouth: [9, 10], nose: { y: 9,  c: "#2b2433", w: 2 }, cheeks: [3, 10], hat: 3, head: { hw: 9, cupY: 8 }, hatDx: 0 },
-  fox:     { eyes: [4, 7],  eyeR: [14, 7],  mouth: [9, 11], nose: { y: 9,  c: "#2b2433", w: 2 }, cheeks: [4, 10], hat: 4, head: { hw: 9, cupY: 8 }, hatDx: 0 },
-  dragon:  { eyes: [5, 6],  eyeR: [13, 6],  mouth: [9, 9],  nose: { y: 8,  c: "#2e7a73", w: 4, dots: true }, cheeks: [3, 8], hat: 2, head: { hw: 9, cupY: 7 }, hatDx: 0 },
-  penguin: { eyes: [5, 7],  eyeR: [13, 7],  mouth: [9, 10], nose: null,                        cheeks: [3, 9],  hat: 1, head: { hw: 9, cupY: 7 }, hatDx: 0, beak: true }
+  cat:     { eyes: [5, 7],  eyeR: [13, 7],  mouth: [9, 11], nose: { y: 10, c: "#ff8fa8" }, cheeks: [3, 10], hat: 5, head: { hw: 10, cupY: 8 }, hatDx: 0 },
+  dog:     { eyes: [6, 5],  eyeR: [12, 5],  mouth: [9, 9],  nose: { y: 8,  c: "#2b2433", w: 2 }, cheeks: [5, 8],  hat: 2, head: { hw: 8, cupY: 6 }, hatDx: 0 },
+  bunny:   { eyes: [5, 8],  eyeR: [13, 8],  mouth: [9, 12], nose: { y: 11, c: "#ff8fa8" }, cheeks: [3, 11], hat: 6, head: { hw: 10, cupY: 9 }, hatDx: 0 },
+  frog:    { eyes: [3, 2],  eyeR: [15, 2],  mouth: [9, 8],  nose: null,                        cheeks: [2, 7],  hat: 3, head: { hw: 10, cupY: 6 }, hatDx: 0, wideMouth: true },
+  panda:   { eyes: [4, 7],  eyeR: [14, 7],  mouth: [9, 11], nose: { y: 10, c: "#2b2433", w: 2 }, cheeks: [3, 11], hat: 3, head: { hw: 10, cupY: 7 }, hatDx: 0 },
+  fox:     { eyes: [5, 7],  eyeR: [13, 7],  mouth: [9, 11], nose: { y: 10, c: "#2b2433", w: 2 }, cheeks: [2, 10], hat: 5, head: { hw: 10, cupY: 8 }, hatDx: 0 },
+  dragon:  { eyes: [5, 6],  eyeR: [13, 6],  mouth: [9, 10], nose: { y: 9,  c: "#2e7a73", w: 2, dots: true }, cheeks: [3, 9], hat: 3, head: { hw: 10, cupY: 7 }, hatDx: 0 },
+  penguin: { eyes: [5, 6],  eyeR: [13, 6],  mouth: [9, 10], nose: null,                        cheeks: [3, 9],  hat: 0, head: { hw: 10, cupY: 6 }, hatDx: 0, beak: true }
 }
 
 var EYE = "#2b2433"
@@ -207,31 +218,68 @@ function E() { return (CUR && CUR.e) || EYE }
 function HP() { return (CUR && CUR.hat) || HAT_PAL }
 function themed(k, fallback) { return (CUR && CUR[k]) || fallback }
 function GOLD() { return (CUR && CUR.gold) || "#ffd966" }
+// Older palettes have no highlight; fall back to the body colour.
+function colorOf(P, k) { return P[k] || (k === "h" ? P.b : k === "s" ? P.d : P.o) }
 
 // ---------------------------------------------------------------- runs
 
 var _runs = {}
 
-// Expand the left half to the full row and merge neighbours of the same colour
-// into rectangles so a frame costs ~100 fillRects instead of 360.
-function runsFor(type) {
-  if (_runs[type]) return _runs[type]
+// Top-left light: a body pixel on a top or left edge (next to the outline or
+// the outside) becomes highlight, one on a bottom or right edge becomes shade.
+// Pure, shared with SideSprites.js, which builds its grids the same way.
+function lightGrid(rows) {
+  var out = [], y, x
+  var edge = function (cx, cy) {
+    if (cy < 0 || cy >= rows.length || cx < 0 || cx >= rows[cy].length) return true
+    var c = rows[cy].charAt(cx)
+    return c === "." || c === "o"
+  }
+  for (y = 0; y < rows.length; y++) {
+    var row = ""
+    for (x = 0; x < rows[y].length; x++) {
+      var c = rows[y].charAt(x)
+      if (c === "b") {
+        if (edge(x, y + 1) || edge(x + 1, y)) c = "d"
+        else if (edge(x, y - 1) || edge(x - 1, y)) c = "h"
+      } else if (c === "l" && edge(x, y + 1)) c = "s"
+      row += c
+    }
+    out.push(row)
+  }
+  return out
+}
+
+function gridRuns(rows) {
   var out = []
-  var half = HALVES[type]
-  for (var y = 0; y < H; y++) {
-    var left = half[y]
-    var row = left + left.split("").reverse().join("")
-    var x = 0
-    while (x < W) {
-      var c = row.charAt(x)
-      var x2 = x
-      while (x2 < W && row.charAt(x2) === c) x2++
+  for (var y = 0; y < rows.length; y++) {
+    var row = rows[y], x = 0
+    while (x < row.length) {
+      var c = row.charAt(x), x2 = x
+      while (x2 < row.length && row.charAt(x2) === c) x2++
       if (c !== ".") out.push({ x: x, y: y, w: x2 - x, c: c })
       x = x2
     }
   }
-  _runs[type] = out
   return out
+}
+
+// Expand the left half to the full row, light it, and merge neighbours of the
+// same colour into rectangles so a frame costs ~100 fillRects instead of 360.
+function fullRows(type) {
+  var half = HALVES[type], rows = []
+  for (var y = 0; y < H; y++) rows.push(half[y] + half[y].split("").reverse().join(""))
+  var marks = MARKS[type] || []
+  for (var i = 0; i < marks.length; i++) {
+    var m = marks[i]
+    for (var yy = m[1]; yy < m[1] + m[3]; yy++)
+      rows[yy] = rows[yy].substr(0, m[0]) + new Array(m[2] + 1).join(m[4]) + rows[yy].substr(m[0] + m[2])
+  }
+  return lightGrid(rows)
+}
+function runsFor(type) {
+  if (!_runs[type]) _runs[type] = gridRuns(fullRows(type))
+  return _runs[type]
 }
 
 function rect(ctx, S, x, y, w, h, color) {
@@ -242,40 +290,49 @@ function rect(ctx, S, x, y, w, h, color) {
 
 // ------------------------------------------------------------ face parts
 
-function drawEye(ctx, S, kind, x, y, lookX, lookY, tear) {
+// Eyes are 2x3 with a catch light; `ring` lifts them off a dark patch (panda).
+// lookX/lookY nudge the pupil one pixel.
+function drawEye(ctx, S, kind, x, y, lookX, lookY, tear, ring) {
   var lx = Math.round(lookX), ly = Math.round(lookY)
+  var shine = "#ffffff", e = E()
   switch (kind) {
     case "closed":
-      rect(ctx, S, x, y + 1, 2, 1, E()); break
+      rect(ctx, S, x - 1, y + 1, 1, 1, e); rect(ctx, S, x, y + 2, 2, 1, e); rect(ctx, S, x + 2, y + 1, 1, 1, e); break
     case "sleepy":
-      rect(ctx, S, x, y + 1, 2, 1, E())
-      rect(ctx, S, x, y, 2, 1, "rgba(43,36,51,0.35)"); break
+      rect(ctx, S, x, y + 1, 2, 1, "rgba(43,36,51,0.35)")
+      rect(ctx, S, x - 1, y + 2, 4, 1, e); break
     case "happy":
-      rect(ctx, S, x - 1, y + 1, 1, 1, E())
-      rect(ctx, S, x, y, 2, 1, E())
-      rect(ctx, S, x + 2, y + 1, 1, 1, E()); break
+      rect(ctx, S, x - 1, y + 2, 1, 1, e)
+      rect(ctx, S, x, y + 1, 2, 1, e)
+      rect(ctx, S, x + 2, y + 2, 1, 1, e); break
     case "love":
-      rect(ctx, S, x - 1, y, 1, 1, "#ff5a86"); rect(ctx, S, x + 1, y, 2, 1, "#ff5a86")
-      rect(ctx, S, x - 1, y + 1, 4, 1, "#ff5a86")
-      rect(ctx, S, x, y + 2, 2, 1, "#ff5a86"); break
+      var lc = themed("love", "#ff5a86")
+      rect(ctx, S, x - 1, y, 1, 1, lc); rect(ctx, S, x + 2, y, 1, 1, lc)
+      rect(ctx, S, x - 1, y + 1, 4, 1, lc)
+      rect(ctx, S, x, y + 2, 2, 1, lc)
+      rect(ctx, S, x - 1, y, 1, 1, "rgba(255,255,255,0.5)"); break
     case "sad":
-      rect(ctx, S, x + lx, y + ly, 2, 2, E())
-      rect(ctx, S, x + lx, y + ly, 1, 1, "#ffffff")
-      rect(ctx, S, x - 1, y - 1, 3, 1, "rgba(43,36,51,0.55)")
-      if (tear) rect(ctx, S, x + 1, y + 2 + (tear % 3), 1, 1, "#8fd0ff")
+      if (ring) rect(ctx, S, x - 1 + lx, y + ly, 4, 4, themed("w", shine))
+      rect(ctx, S, x + lx, y + 1 + ly, 2, 2, e)
+      rect(ctx, S, x + lx, y + 1 + ly, 1, 1, shine)
+      rect(ctx, S, x - 1, y - 1, 1, 1, "rgba(43,36,51,0.55)"); rect(ctx, S, x, y - 1, 1, 1, "rgba(43,36,51,0.55)"); rect(ctx, S, x + 1, y - 2, 2, 1, "rgba(43,36,51,0.55)")
+      if (tear) rect(ctx, S, x, y + 3 + (tear % 3), 1, 1, "#8fd0ff")
       break
     case "wide":
-      rect(ctx, S, x - 1 + lx, y - 1 + ly, 4, 4, E())
-      rect(ctx, S, x + lx, y - 1 + ly, 1, 1, "#ffffff"); rect(ctx, S, x + 2 + lx, y + 1 + ly, 1, 1, "#ffffff"); break
+      if (ring) rect(ctx, S, x - 2 + lx, y - 2 + ly, 6, 6, themed("w", shine))
+      rect(ctx, S, x - 1 + lx, y - 1 + ly, 4, 4, e)
+      rect(ctx, S, x - 1 + lx, y - 1 + ly, 2, 2, shine); rect(ctx, S, x + 2 + lx, y + 2 + ly, 1, 1, shine); break
     default: // open
-      rect(ctx, S, x + lx, y + ly, 2, 2, E())
-      rect(ctx, S, x + lx, y + ly, 1, 1, "#ffffff")
+      if (ring) rect(ctx, S, x - 1 + lx, y - 1 + ly, 4, 5, themed("w", shine))
+      rect(ctx, S, x + lx, y + ly, 2, 3, e)
+      rect(ctx, S, x + lx, y + ly, 1, 1, shine)
   }
 }
 
 function drawMouth(ctx, S, kind, mx, my, wide) {
   var c = (CUR && CUR.m) || "#5a3040"
   var half = wide ? 3 : 1
+  if (kind === "smile" && !wide) half = 2
   switch (kind) {
     case "smile":
       rect(ctx, S, mx - 1 - half + 1, my, 1, 1, c)
@@ -327,43 +384,53 @@ function drawCheeks(ctx, S, face, amount) {
 
 // ------------------------------------------------------- tails and wings
 
-function seg(ctx, S, x, y, w, h, color) { rect(ctx, S, Math.round(x), Math.round(y), w, h, color) }
+// Tails are lists of squares: every one gets an outline first, then all of
+// them are filled, so the chain reads as one outlined shape.
+function chainDraw(ctx, S, segs, outline) {
+  var i, q
+  for (i = 0; i < segs.length; i++) { q = segs[i]; rect(ctx, S, Math.round(q[0]) - 1, Math.round(q[1]) - 1, q[2] + 2, q[3] + 2, outline) }
+  for (i = 0; i < segs.length; i++) { q = segs[i]; rect(ctx, S, Math.round(q[0]), Math.round(q[1]), q[2], q[3], q[4]) }
+}
 
-// phase: radians; amp: pixels of side sway. Drawn behind the body.
+// phase: radians; amp: pixels of side sway. Drawn behind the body, which sits
+// on columns 3..16 from row 13 down, so tails start at its right edge.
 function drawTail(ctx, S, type, stage, phase, amp) {
   var P = CUR || PALETTES[type]
-  var i, k
+  var i, k, segs = []
+  var hi = colorOf(P, "h")
   switch (type) {
     case "cat": {
       var n = 9
-      for (i = 0; i < n; i++) {
-        var t = i / (n - 1)
-        seg(ctx, S, 18 + i * 0.8 + Math.sin(phase - i * 0.5) * amp * t, 15 - i * 0.9, 2, 2, i > n - 3 ? P.d : P.b)
+      var curl = function (side) {
+        for (i = 0; i < n; i++) {
+          var t = i / (n - 1)
+          var x = side > 0 ? 15.5 + i * 0.75 + Math.sin(phase - i * 0.5) * amp * t : 2.5 - i * 0.75 - Math.sin(phase + 1 - i * 0.5) * amp * t
+          // The tip hooks over at the top.
+          if (i >= n - 2) x += side * (i - n + 3) * 0.6
+          segs.push([x, 14.5 - i * 0.95 - (i >= n - 2 ? 0.3 : 0), 2, 2, i >= n - 2 ? P.d : i % 3 === 1 ? P.d : P.b])
+        }
       }
-      if (stage >= 3) for (i = 0; i < n; i++) { // the mystic cat grows a second tail
-        var u = i / (n - 1)
-        seg(ctx, S, -0.8 - i * 0.7 - Math.sin(phase + 1 - i * 0.5) * amp * u, 15 - i * 0.9, 2, 2, i > n - 3 ? P.d : P.b)
-      }
+      curl(1)
+      if (stage >= 3) curl(-1) // the mystic cat grows a second tail
       break
     }
     case "dog": {
-      for (i = 0; i < 5; i++)
-        seg(ctx, S, 19 + i * 0.5 + Math.sin(phase) * amp * (i / 4) * 1.6, 14 - i * 1.1, 2, 2, P.d)
+      for (i = 0; i < 6; i++)
+        segs.push([16 + i * 0.55 + Math.sin(phase) * amp * (i / 5) * 1.6, 14.5 - i * 1.05, 2, 2, i === 5 ? P.l : P.b])
       break
     }
-    case "bunny": rect(ctx, S, 18.5, 14.5, 3, 3, P.w); rect(ctx, S, 18.5, 16, 3, 1, P.l); break
-    case "panda": rect(ctx, S, 19, 15, 2, 2, P.k); break
+    case "bunny": chainDraw(ctx, S, [[16, 14, 2, 2, P.w || P.l]], P.o); return
+    case "panda": chainDraw(ctx, S, [[16, 14, 2, 2, P.k]], P.o); return
     case "fox": {
       var tails = stage >= 3 ? 3 : 1
       for (k = 0; k < tails; k++) {
         var spread = tails === 1 ? 0 : (k - 1)
         for (i = 0; i < 8; i++) {
           var f = i / 7
-          var w = 3 + (i > 1 && i < 6 ? 1 : 0)
-          var x = 18 + i * 0.9 + spread * i * 0.55 + Math.sin(phase + k * 0.9 - i * 0.45) * amp * f
-          var y = 14 - i * 0.9 - Math.abs(spread) * i * 0.2
-          seg(ctx, S, x, y, w, 3, i >= 6 ? (P.w || "#fff4e6") : P.b)
-          if (i === 0) seg(ctx, S, x, y + 3, w, 1, P.o)
+          var w = i === 0 ? 2 : (i > 1 && i < 6 ? 4 : 3)
+          var x = 15.5 + i * 0.9 + spread * i * 0.55 + Math.sin(phase + k * 0.9 - i * 0.45) * amp * f
+          var y = 13.5 - i * 0.95 - Math.abs(spread) * i * 0.2
+          segs.push([x, y, w, 3, i >= 6 ? (P.w || "#fff4e6") : i === 2 || i === 3 ? hi : P.b])
         }
       }
       break
@@ -371,54 +438,79 @@ function drawTail(ctx, S, type, stage, phase, amp) {
     case "dragon": {
       for (i = 0; i < 8; i++) {
         var q = i / 7
-        seg(ctx, S, 18 + i * 0.9, 15 - i * 0.2 + Math.sin(phase - i * 0.55) * amp * q, 2, i === 7 ? 3 : 2, i === 7 ? P.a : P.b)
+        segs.push([15.5 + i * 0.95, 14.5 - i * 0.35 + Math.sin(phase - i * 0.55) * amp * q, 2, i < 3 ? 3 : 2, P.b])
       }
+      var tip = segs[segs.length - 1]
+      segs.push([tip[0] + 1, tip[1] - 1, 2, 3, P.a]) // spade tip
       break
     }
   }
+  chainDraw(ctx, S, segs, P.o)
 }
 
-// flap: -1..1. Wings sit behind the body on both sides.
+// Bat wings, drawn behind the body from its shoulders. The left wing is the
+// grid; the right one mirrors it. `flap` -1..1 shears the far end up or down.
+var WING_SMALL = [
+  "oo...",
+  "oaoo.",
+  "oaaao",
+  ".oaao",
+  "..o.o"
+]
+var WING_BIG = [
+  "oo.....",
+  "oaoo...",
+  "oaaaoo.",
+  "oaaaaao",
+  ".oaaaao",
+  "..oaoao",
+  "...o.o."
+]
 function drawWings(ctx, S, type, stage, flap) {
   if (type !== "dragon") return
   var P = CUR || PALETTES.dragon
-  var size = 3 + stage
+  var g = stage >= 2 ? WING_BIG : WING_SMALL
+  var gw = g[0].length
   for (var side = 0; side < 2; side++) {
-    var dir = side === 0 ? -1 : 1
-    for (var r = 0; r < size + 2; r++) {
-      var w = Math.max(1, size - Math.abs(r - 1) + 1)
-      var lift = flap * (size - r * 0.4) * 0.9
-      var x = dir < 0 ? 1.5 - w : 18.5
-      seg(ctx, S, x - (dir < 0 ? lift * 0.3 : -lift * 0.3), 6 + r - lift * 0.6, w, 1, r % 2 ? P.a : (P.aw || "#ffb59a"))
+    for (var r = 0; r < g.length; r++) for (var c = 0; c < gw; c++) {
+      var ch = g[r].charAt(c)
+      if (ch === ".") continue
+      var dist = gw - 1 - c
+      var dy = -Math.round(flap * dist * 0.7)
+      var x = side === 0 ? 4 - gw + c : 15 + gw - 1 - c + 1
+      var col = ch === "o" ? P.o : (r + c) % 3 === 0 ? (P.aw || P.a) : P.a
+      rect(ctx, S, x, (stage >= 2 ? 9 : 11) + r + dy, 1, 1, col)
     }
   }
 }
 
-// Penguin flippers swing in front of the body.
+// Penguin flippers swing at the sides of the body, in front of it.
 function drawFlippers(ctx, S, type, flap) {
   if (type !== "penguin") return
   var P = CUR || PALETTES.penguin
+  var segs = []
   for (var side = 0; side < 2; side++) {
     var dir = side === 0 ? -1 : 1
-    for (var i = 0; i < 6; i++) {
-      var x = dir < 0 ? 0.5 - Math.abs(flap) * i * 0.35 : 18.5 + Math.abs(flap) * i * 0.35
-      seg(ctx, S, x, 9 + i - flap * 0.8, 1.5, 1, P.o)
-      seg(ctx, S, x + 0.5, 9 + i - flap * 0.8, 1, 1, P.d)
+    for (var i = 0; i < 5; i++) {
+      var out = Math.max(0, flap) * i * 0.45
+      var x = dir < 0 ? 2 - out : 17 + out
+      segs.push([x, 10 + i - flap * 0.9 * (i / 4), 1, 1, i === 4 ? P.d : colorOf(P, "h")])
     }
   }
+  chainDraw(ctx, S, segs, P.o)
 }
 
 // What an adult (stage 3) wears that the younger forms do not.
 function drawAdultMark(ctx, S, type, t) {
   switch (type) {
     case "cat": rect(ctx, S, 9, 5, 2, 1, GOLD()); break
-    case "dog": rect(ctx, S, 4, 14, 12, 2, themed("t", "#ff6b6b")); rect(ctx, S, 3, 14, 1, 2, themed("o", "#c94b4b")); rect(ctx, S, 16, 14, 1, 2, themed("o", "#c94b4b")); break
-    case "bunny": rect(ctx, S, 9, 7, 2, 1, GOLD()); rect(ctx, S, 8, 8, 1, 1, GOLD()); break
+    case "dog": rect(ctx, S, 5, 13, 10, 1, themed("t", "#ff6b6b")); rect(ctx, S, 9, 14, 2, 1, GOLD()); break
+    case "bunny": rect(ctx, S, 8, 5, 1, 2, GOLD()); rect(ctx, S, 11, 5, 1, 2, GOLD()); rect(ctx, S, 9, 6, 2, 1, GOLD()); break
     case "frog": rect(ctx, S, 7, 10, 6, 1, GOLD()); break
     case "panda": rect(ctx, S, 15, 4, 1, 3, themed("a", "#7fc97f")); rect(ctx, S, 16, 3, 2, 1, themed("a", "#7fc97f")); break
     case "fox": rect(ctx, S, 9, 6, 2, 1, GOLD()); break
     case "dragon": rect(ctx, S, 9, 5, 2, 1, GOLD()); break
-    case "penguin": rect(ctx, S, 4, 8, 2, 2, GOLD()); rect(ctx, S, 14, 8, 2, 2, GOLD()); break
+    case "penguin": rect(ctx, S, 7, 11, 2, 3, GOLD()); rect(ctx, S, 11, 11, 2, 3, GOLD()); rect(ctx, S, 9, 12, 2, 1, GOLD()); break
   }
 }
 
@@ -441,8 +533,8 @@ function drawHat(ctx, S, type, hat, bob) {
   if (hat === "glasses") {
     var ex = [face.eyes, face.eyeR]
     for (var e = 0; e < 2; e++) {
-      rect(ctx, S, ex[e][0] - 1, ex[e][1] - 1, 4, 3, HP().k)
-      rect(ctx, S, ex[e][0], ex[e][1] - 1, 1, 1, HP().o)
+      rect(ctx, S, ex[e][0] - 1, ex[e][1] - 1, 4, 4, HP().k)
+      rect(ctx, S, ex[e][0], ex[e][1], 1, 1, "rgba(255,255,255,0.6)")
     }
     rect(ctx, S, face.eyes[0] + 3, face.eyes[1], face.eyeR[0] - face.eyes[0] - 4, 1, HP().k)
     return
@@ -498,15 +590,15 @@ function drawPet(ctx, o) {
   var runs = runsFor(o.type)
   for (var i = 0; i < runs.length; i++) {
     var r = runs[i]
-    rect(ctx, S, r.x, r.y, r.w, 1, P[r.c])
+    rect(ctx, S, r.x, r.y, r.w, 1, colorOf(P, r.c))
   }
   if (o.stage >= 3) drawAdultMark(ctx, S, o.type)
   drawCheeks(ctx, S, face, o.blush || 0)
   drawNose(ctx, S, face)
   if (face.beak) drawBeak(ctx, S, o.mouth === "open")
   var eyes = o.eyes || "open"
-  drawEye(ctx, S, eyes, face.eyes[0], face.eyes[1], o.lookX || 0, o.lookY || 0, o.tear)
-  drawEye(ctx, S, eyes, face.eyeR[0], face.eyeR[1], o.lookX || 0, o.lookY || 0, o.tear)
+  drawEye(ctx, S, eyes, face.eyes[0], face.eyes[1], o.lookX || 0, o.lookY || 0, o.tear, face.lightEyes)
+  drawEye(ctx, S, eyes, face.eyeR[0], face.eyeR[1], o.lookX || 0, o.lookY || 0, o.tear, face.lightEyes)
   if (!face.beak) drawMouth(ctx, S, o.mouth || "smile", face.mouth[0], face.mouth[1], !!face.wideMouth)
   drawFlippers(ctx, S, o.type, o.wing || 0)
   if (o.hat && o.hat !== "none") drawHat(ctx, S, o.type, o.hat, o.hatBob || 0)

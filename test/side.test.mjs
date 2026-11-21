@@ -13,10 +13,10 @@ const ctx = vm.createContext({});
 for (const f of ["Sprites.js", "Logic.js", "SideSprites.js"]) vm.runInContext(readFileSync(join(here, "..", f), "utf8"), ctx);
 const S = ctx;
 
-test("every side pet is a pet with a palette, and the penguin stays front-only", () => {
+test("every pet has a side view, the penguin included", () => {
   for (const id of S.SIDE_PETS) assert.ok(S.PETS[id] && S.PALETTES[id], id);
-  assert.equal(S.hasSide("penguin"), false);
-  assert.equal(S.SIDE_PETS.length, 7);
+  for (const id of S.PET_ORDER) assert.ok(S.hasSide(id), `${id} has no profile`);
+  assert.equal(S.SIDE_PETS.length, 8);
 });
 
 test("side bodies fit the grid and use only palette colours", () => {
@@ -25,6 +25,7 @@ test("side bodies fit the grid and use only palette colours", () => {
     assert.equal(rows.length, S.SH, id);
     rows.forEach((r, i) => assert.equal(r.length, S.SW, `${id} row ${i}`));
     for (const r of runs) assert.ok(S.PALETTES[id][r.c], `${id} uses ${r.c}`);
+    for (const row of S.SIDE[id].art) assert.equal(row.length, S.SW, `${id} art row "${row}"`);
     // Nothing may touch the outer edge, or the outline would be cut off.
     assert.ok(rows[0].split("").every((c) => c === "." || c === "o"), `${id} top row`);
     assert.ok(rows.every((r) => (r[0] === "." || r[0] === "o") && (r[S.SW - 1] === "." || r[S.SW - 1] === "o")), `${id} side edges`);
@@ -71,13 +72,57 @@ test("gait amount ramps from standing to full, and the turn is continuous", () =
   assert.ok(S.turnScale(0.5) < 0.3);
 });
 
-test("rolling pandas and the penguin do not turn to profile", () => {
+test("rolling pandas and sliding penguins stay front-on", () => {
   assert.equal(S.showsSide("panda", "pandaRoll"), false);
   assert.equal(S.showsSide("panda", "pandaWaddle"), true);
-  assert.equal(S.showsSide("penguin", "walk"), false);
+  assert.equal(S.showsSide("penguin", "penguinSlide"), false);
+  assert.equal(S.showsSide("penguin", "penguinWaddle"), true);
 });
 
-test("walking bobs the body up, never below the ground", () => {
-  for (const kind of ["walk", "trot", "amble", "stomp"]) for (let p = 0; p < 1; p += 0.05) assert.ok(S.walkBob(kind, p, 1, 1) <= 0);
-  assert.equal(S.walkBob("hop", 0.3, 1, 1), 0);
+test("walkers rise at most a row, hoppers rise through sideBob instead", () => {
+  for (const kind of ["walk", "trot", "amble", "stomp", "waddle"]) for (let p = 0; p < 1; p += 0.05) {
+    const r = S.walkLift(kind, p, 1);
+    assert.ok(r >= 0 && r <= 1, `${kind} lift ${r}`);
+  }
+  assert.equal(S.walkLift("hop", 0.3, 1), 0);
+  assert.equal(S.walkLift("walk", 0.25, 0), 0);
+});
+
+// A tiny canvas that records which sprite cells get painted.
+function cells(draw) {
+  const set = new Map(); let tx = 0, ty = 0; const stack = [];
+  const g = { fillStyle: "", save() { stack.push([tx, ty]); }, restore() { [tx, ty] = stack.pop(); }, translate(x, y) { tx += x; ty += y; },
+    fillRect(x, y, w, h) { for (let i = 0; i < Math.floor(w); i++) for (let j = 0; j < Math.floor(h); j++) set.set(`${Math.round(tx + x) + i},${Math.round(ty + y) + j}`, g.fillStyle); } };
+  draw(g);
+  return set;
+}
+
+test("legs stay attached: every leg column reaches from the hips to the ground", () => {
+  for (const id of S.SIDE_PETS) for (let ph = 0; ph < 1; ph += 0.1) {
+    const pal = S.PALETTES[id];
+    const painted = cells((g) => { g.translate(S.SW / 2, S.SH); S.drawSidePet(g, { lib: S, pal, type: id, S: 1, gait: ph, gaitAmt: 1, stage: 1 }); });
+    const lg = S.SIDE[id].legs, bob = S.sideBob(S.SIDE[id].gait, ph, 1) + S.walkLift(S.SIDE[id].gait, ph, 1);
+    // Every row between the hips and the lowest foot has some leg pixel.
+    let low = 0;
+    for (const k of painted.keys()) low = Math.max(low, +k.split(",")[1]);
+    for (let y = lg.top - bob; y <= low; y++) {
+      const any = [...painted.keys()].some((k) => +k.split(",")[1] === y);
+      assert.ok(any, `${id} gap at row ${y}, phase ${ph.toFixed(1)}`);
+    }
+    if (bob === 0) assert.equal(low, S.GROUND, `${id} feet on the ground at phase ${ph.toFixed(1)}`);
+  }
+});
+
+test("a lifted foot rises off the ground and a planted one does not", () => {
+  const planted = S.legState("walk", 0, 0.1), swinging = S.legState("walk", 0, 0.8);
+  assert.equal(planted.lift, 0);
+  assert.ok(swinging.lift > 0.5);
+  // The swing eases: slow at both ends, fast in the middle.
+  const a = S.legState("walk", 0, 0.66).x, b = S.legState("walk", 0, 0.70).x, c = S.legState("walk", 0, 0.80).x, d = S.legState("walk", 0, 0.84).x;
+  assert.ok(d - c > b - a, "swing is fastest mid-air");
+});
+
+test("only the penguin rocks while it walks", () => {
+  assert.equal(S.waddleRock("walk", 0.25, 1), 0);
+  assert.ok(Math.abs(S.waddleRock("waddle", 0.25, 1)) > 0.05);
 });

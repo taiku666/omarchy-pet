@@ -3,6 +3,7 @@
 //
 // The look is calm: every pet is a theme hue pulled toward the background, with
 // one accent colour for details, so it sits in the UI instead of shouting over it.
+// `h` (highlight) and `s` (belly shade) give the top-left lighting in Sprites.js.
 //
 // env: { bg, text, accent, urgent, hues: { name: "#rrggbb" } }, all "#rrggbb".
 
@@ -46,16 +47,18 @@ function petPalette(type, env) {
   if (type === "dog" && !env.hues.brown) base = palMix(hue("orange"), BLACK, 0.25)
   if (type === "fox") base = palMix(red, hue("orange", red), 0.5)
 
-  var b, d, o, l, k, a, aw
+  var b, d, o, l, k, a, aw, h
   if (type === "bunny" || type === "panda") {
     b = palMix(paper, bg, 0.15)
     l = palMix(paper, bg, 0.05)
+    h = palMix(b, bright, 0.7)
     d = palMix(paper, ink, 0.4)
     o = palMix(ink, BLACK, 0.5)
     k = type === "panda" ? palMix(ink, paper, 0.16) : palMix(paper, ink, 0.45)
     a = type === "panda" ? palMix(hue("green"), bg, 0.2) : palMix(b, red, 0.3)
   } else if (type === "penguin") {
     b = palMix(base, ink, 0.6)
+    h = palMix(b, paper, 0.22)
     d = palMix(b, ink, 0.4)
     o = palMix(b, ink, 0.8)
     k = b
@@ -63,8 +66,9 @@ function petPalette(type, env) {
     a = palMix(hue("orange"), bg, 0.2)
   } else {
     // On a dark theme the body is the widgets' text colour, tinted by the pet's hue.
-    b = dark ? palMix(base, env.text, 0.6) : palMix(base, bg, 0.25)
-    d = palMix(b, ink, 0.4)
+    b = dark ? palMix(base, env.text, 0.45) : palMix(base, bg, 0.25)
+    h = palMix(b, dark ? bright : WHITE, 0.35)
+    d = palMix(b, ink, 0.35)
     o = palMix(b, ink, 0.8)
     l = palMix(b, paper, 0.55)
     k = palMix(b, ink, 0.7)
@@ -74,7 +78,7 @@ function petPalette(type, env) {
   var cheek = palRgb(palMix(b, red, 0.3))
 
   return {
-    b: b, l: l, d: d, o: o, k: k, a: a, aw: aw,
+    b: b, h: h, s: palMix(l, d, 0.45), l: l, d: d, o: o, k: k, a: a, aw: aw,
     p: palMix(b, red, 0.4),
     w: palMix(bright, paper, 0.5),
     e: palMix(ink, BLACK, 0.5),

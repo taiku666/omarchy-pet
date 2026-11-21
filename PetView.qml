@@ -5,7 +5,9 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.Commons
 import "Sprites.js" as Sprites
+import "SideSprites.js" as Side
 import "Anim.js" as Anim
 import "Logic.js" as Logic
 
@@ -46,7 +48,8 @@ Item {
     mouseX: 0, mouseY: 0, pressed: false, lastFrame: 0, t0: Date.now(),
     nextRandom: 0, nextSpeech: 0, nextThought: 0,
     game: null, entity: null, nextEntity: 0, suds: 0, lastZ: 0, shake: 0,
-    seed: Date.now() % 2147483647, lastMood: ""
+    seed: Date.now() % 2147483647, lastMood: "",
+    walking: false, lastX: -1, mix: 0, gait: 0, speed: 0, amt: 0, kind: "walk"
   })
 
   function rnd() { wd.seed = (wd.seed * 16807) % 2147483647; return wd.seed / 2147483647 }
@@ -188,6 +191,35 @@ Item {
 
   function currentMood() { return st ? Logic.mood(st) : "happy" }
 
+  // Walking turns the pet to profile, as on the bar: steps locked to the ground
+  // covered, a lean, dust at the footfalls. Games, reactions and the rest stay
+  // front-on. The speeds are scaled to the bar's pet size, which the gait
+  // ramps were tuned for.
+  function stepProfile(dt, pose) {
+    var dxm = wd.lastX < 0 ? 0 : Math.abs(wd.x - wd.lastX)
+    wd.lastX = wd.x
+    var name = wd.beh ? wd.beh.name : ""
+    var want = hatched && !!pose && wd.walking && !wd.game && !wd.react && Side.showsSide(petType, name)
+    wd.speed += ((dt > 0 ? dxm / dt : 0) - wd.speed) * Math.min(1, dt * 10)
+    var turnMs = Style.duration(130)
+    var mstep = turnMs > 0 ? dt * 1000 / turnMs : 1
+    wd.mix = want ? Math.min(1, wd.mix + mstep) : Math.max(0, wd.mix - mstep)
+    if (wd.mix <= 0 || !pose) return
+    var kind = Side.SIDE[petType].gait
+    var S0 = art * bodyScale()
+    var ph0 = wd.gait
+    if (want) wd.gait += dxm / Side.strideLength(kind, S0)
+    var amt = Side.gaitAmount(wd.speed * 1.5 / S0)
+    pose.dy = 0; pose.dx = 0
+    pose.rot = Side.leanFor(wd.speed * 1.5 / S0) + Side.waddleRock(kind, wd.gait, amt)
+    pose.sx = 1; pose.sy = 1
+    var beats = (kind === "hop" || kind === "bound") ? 1 : 2
+    if (want && amt > 0.4 && Math.floor(wd.gait * beats) !== Math.floor(ph0 * beats))
+      for (var i = 0; i < 2; i++)
+        spawn({ type: "dust", x: wd.x - wd.face * 7 * S0, y: wd.y - 2, vx: -wd.face * (10 + rnd() * 16), vy: -(6 + rnd() * 10), life: 0.35 + rnd() * 0.2, size: Math.max(2, Math.round(S0 * 0.6)) })
+    wd.amt = amt; wd.kind = kind
+  }
+
   function frame() {
     var t = now()
     var dt = Math.min(0.1, (t - wd.lastFrame) / 1000)
@@ -214,6 +246,7 @@ Item {
     var mood = hatched ? currentMood() : "happy"
     var sleeping = hatched && st.sleeping
     var pose
+    wd.walking = false
 
     if (!hatched) {
       wd.pose = null
@@ -248,11 +281,13 @@ Item {
         if (Anim.BEHAVIORS[wd.beh.name].move) {
           var e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2
           wd.x = wd.beh.startX + (wd.beh.targetX - wd.beh.startX) * e
+          wd.walking = p < 0.97
         }
       }
       wd.pose = pose
     }
     pose = wd.pose
+    stepProfile(dt, pose)
 
     // attention: eyes follow the pointer or the butterfly
     if (pose) {
@@ -560,9 +595,17 @@ Item {
       ctx.translate(px, py)
       if (fx.rollCenter) { ctx.translate(0, -9 * scale); ctx.rotate(pose.rot); ctx.translate(0, 9 * scale) }
       else ctx.rotate(pose.rot)
-      ctx.scale(wd.face * pose.sx, pose.sy)
+      var m = wd.mix || 0
+      ctx.scale(wd.face * pose.sx * Side.turnScale(m), pose.sy)
       var tailPhase = t / 1000 * (pose.tailAmp > 2.5 ? 12 : 4)
-      Sprites.drawPet(ctx, {
+      if (m >= 0.5) Side.drawSidePet(ctx, {
+        lib: Sprites, pal: ctl.th.petPalette(petType), type: petType, S: scale, stage: stageOf(),
+        gait: wd.gait, gaitAmt: wd.amt, gaitType: wd.kind,
+        eyes: eyes, lookX: 1, lookY: 0, mouth: mouth, blush: blush,
+        tailPhase: t / 1000 * 6, tailAmp: pose.tailAmp > 2.5 ? 16 : 9, wing: (pose.wing || 0) + 0.3 * Math.sin(t / 160),
+        hat: st.equipped.hat
+      })
+      else Sprites.drawPet(ctx, {
         pal: ctl.th.petPalette(petType), type: petType, S: scale, stage: stageOf(),
         tailPhase: tailPhase, tailAmp: pose.tailAmp, wing: pose.wing, gait: pose.gait, gaitAmt: pose.gaitAmt, gaitSync: pose.gaitSync,
         eyes: eyes, lookX: pose.lookX, lookY: pose.lookY, tear: moodNow === "sad" ? Math.floor(t / 350) : 0,
@@ -585,6 +628,7 @@ Item {
         case "star": Sprites.drawStar(ctx, p.x, p.y, p.size * 1.6, p.color); break
         case "sparkle": Sprites.drawStar(ctx, p.x, p.y, p.size, String(ctl.th.gold)); break
         case "crumb": ctx.fillStyle = p.color; ctx.fillRect(Math.round(p.x), Math.round(p.y), 3, 3); break
+        case "dust": ctx.globalAlpha = Math.max(0, 0.6 * life); ctx.fillStyle = String(ctl.th.text); ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size); break
         case "food":
           ctx.globalAlpha = 1; ctx.font = "26px '" + ctl.th.font + "'"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
           ctx.fillText(p.emoji, p.px, p.py); break
